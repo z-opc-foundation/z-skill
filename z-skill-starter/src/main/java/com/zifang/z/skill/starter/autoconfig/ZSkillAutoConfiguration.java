@@ -5,6 +5,7 @@ import com.zifang.z.skill.core.properties.SkillProperties;
 import com.zifang.z.skill.core.registry.SkillRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -19,8 +20,12 @@ import java.io.File;
  *
  * <p>SkillController 由 @ComponentScan 通过 @RestController 自动发现, 不要重复 @Bean
  * <p>(否则在用户业务模块加 scanBasePackages="com.zifang.z.skill.core" 时会爆 BeanDefinitionOverrideException).
+ *
+ * <p>FEATURE066 2026-09-23: 加 @ConditionalOnProperty(name = "z.skill.enabled", havingValue = "true")
+ * 防止与 z-opc 内部遗留的 z-agent-skill-center-* 冲突. 完全替换后可去掉.
  */
 @Configuration
+@ConditionalOnProperty(name = "z.skill.enabled", havingValue = "true", matchIfMissing = false)
 @EnableConfigurationProperties(SkillProperties.class)
 @ComponentScan(basePackages = {
         "com.zifang.z.skill.core.controller",
