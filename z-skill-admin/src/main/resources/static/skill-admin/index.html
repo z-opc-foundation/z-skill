@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>z-skill 控制台</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; margin: 24px; color: #1f2328; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  h2 { font-size: 14px; margin: 0 0 10px; }
+  .sub { color: #656d76; font-size: 12px; margin-bottom: 16px; }
+  .card { border: 1px solid #d0d7de; border-radius: 6px; padding: 14px 16px; margin-bottom: 14px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { background: #f6f8fa; border: 1px solid #d0d7de; padding: 3px 9px; border-radius: 12px; font-size: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; }
+  th, td { padding: 5px 8px; border-bottom: 1px solid #eaeef2; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .risk-critical, .risk-high { color: #cf222e; font-weight: 600; }
+  .risk-medium { color: #bc4c00; }
+  .risk-low, .risk-safe { color: #1a7f37; }
+  .status-UP { color: #1a7f37; font-weight: 600; }
+  .status-DEGRADED { color: #bc4c00; font-weight: 600; }
+  input, button { font: inherit; padding: 4px 8px; border: 1px solid #d0d7de; border-radius: 4px; }
+  button[disabled] { opacity: .5; }
+  .muted { color: #656d76; }
+</style>
+</head>
+<body>
+<h1>z-skill 控制台</h1>
+<div class="sub">Skill 平台聚合器 — 收录各家平台的 Skill, 归一化后按各家 API 形状反向输出</div>
+
+<div class="card">
+  <h2>状态</h2>
+  <div class="chips" id="health"><span class="chip muted">加载中…</span></div>
+  <div class="chips" id="overview" style="margin-top:8px"></div>
+</div>
+
+<div class="card">
+  <h2>来源 (<span id="source-count">0</span>)</h2>
+  <table id="sources"><thead><tr>
+    <th>id</th><th>format</th><th>origin</th><th>priority</th><th>状态</th><th>skills</th><th>issues</th>
+  </tr></thead><tbody></tbody></table>
+</div>
+
+<div class="card">
+  <h2>Skill (<span id="skill-count">0</span>)</h2>
+  <div style="margin-bottom:10px">
+    <input id="q" type="search" placeholder="搜索 name / description / tag" size="36">
+    <select id="format"><option value="">全部 format</option></select>
+    <select id="source"><option value="">全部来源平台</option></select>
+    <select id="category"><option value="">全部分类</option></select>
+    <button id="refresh" type="button">重新聚合</button>
+    <span id="busy" class="muted"></span>
+  </div>
+  <table id="skills"><thead><tr>
+    <th>name</th><th>slug</th><th>format</th><th>source</th><th>category</th><th>version</th><th>risk</th><th>已安装</th><th>操作</th><th>description</th>
+  </tr></thead><tbody></tbody></table>
+</div>
+
+<div class="card">
+  <h2>规范问题 (<span id="issue-count">0</span>)</h2>
+  <table id="issues"><thead><tr>
+    <th>severity</th><th>code</th><th>skill</th><th>path</th><th>detail</th>
+  </tr></thead><tbody></tbody></table>
+</div>
+
+<script>
+// 第三方 SKILL.md 的描述、路径、错误文本全是不可信输入: 一律走 textContent, 不拼 innerHTML.
+// 第二参数允许是 Node(比如 <code> 包起来的 id), 这时必须挂上去而不是 String() 它 —
+// String(HTMLElement) 得到 "[object HTMLElement]", 表格里会原样显示出来.
+function el(tag, text, cls) {
+  const n = document.createElement(tag);
+  if (text instanceof Node) n.appendChild(text);
+  else if (text !== undefined && text !== null) n.textContent = String(text);
+  if (cls) n.className = cls;
+  return n;
+}
+function chip(label, value) { return el('span', label + ': ' + value, 'chip'); }
+function row(target, cells) {
+  const tr = document.createElement('tr');
+  for (const c of cells) tr.appendChild(c instanceof Node ? c : el('td', c));
+  target.appendChild(tr);
+}
+function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+function json(url, options) {
+  return fetch(url, options).then(r => {
+    if (!r.ok) throw new Error(url + ' -> HTTP ' + r.status);
+    return r.json();
+  });
+}
+
+function renderHealth(h) {
+  const box = document.getElementById('health');
+  clear(box);
+  box.appendChild(el('span', h.status, 'chip status-' + h.status));
+  box.appendChild(chip('来源', h.sources));
+  box.appendChild(chip('失败来源', h.sourcesFailed));
+  box.appendChild(chip('收录', h.skills));
+}
+
+function renderOverview(o) {
+  const box = document.getElementById('overview');
+  box.textContent = '';
+  box.appendChild(chip('聚合原始候选', o.rawCandidates));
+  box.appendChild(chip('去重', o.deduped));
+  box.appendChild(chip('跨来源冲突', o.conflicts));
+  box.appendChild(chip('规范问题', o.issues));
+  box.appendChild(chip('本次耗时(ms)', o.lastDurationMs));
+  box.appendChild(chip('较上次新增', o.recentAdded));
+  box.appendChild(chip('上游漂移', o.recentChanged));
+  box.appendChild(chip('上游撤下', o.recentRemoved));
+  if (o.danglingInstalls) box.appendChild(el('span', '失效安装: ' + o.danglingInstalls, 'chip risk-high'));
+  for (const k in (o.formatDistribution || {})) box.appendChild(chip(k, o.formatDistribution[k]));
+  for (const k in (o.riskDistribution || {})) box.appendChild(chip('risk ' + k, o.riskDistribution[k]));
+}
+
+function renderSources(list) {
+  const tbody = document.querySelector('#sources tbody');
+  clear(tbody);
+  document.getElementById('source-count').textContent = String(list.length);
+  for (const s of list) {
+    // 自动发现的目录一律声明为 unknown, 真正说明"这是哪个平台的形状"的是扫描时认出来的 observedFormats
+    const shapes = (s.observedFormats && s.observedFormats.length) ? s.observedFormats.join(' ') : s.format;
+    row(tbody, [el('td', el('code', s.id)), el('td', shapes), s.origin, s.priority,
+      el('td', s.status, s.status === 'error' ? 'risk-high' : ''), s.skillCount, s.issueCount]);
+  }
+}
+
+function renderSkills(list, payload) {
+  const tbody = document.querySelector('#skills tbody');
+  clear(tbody);
+  document.getElementById('skill-count').textContent = String(list.length);
+  addFormatOptions(list);
+  addFacetOptions('source', (payload || {}).allFacets);
+  addFacetOptions('category', (payload || {}).allFacets);
+  for (const s of list) {
+    row(tbody, [
+      el('td', el('code', s.name)),
+      el('td', el('code', s.slug)),
+      s.formatId,
+      s.source,
+      s.category,
+      s.version,
+      el('td', s.riskLevel, 'risk-' + s.riskLevel),
+      // 单元格必须还是 <td>: 直接把 <span> 交给 row() 会挂成 <tr> 的亲儿子, 那是非法表格结构
+      s.installed ? el('td', el('span', '已装', 'risk-safe')) : el('td', ''),
+      el('td', installButton(s)),
+      s.description
+    ]);
+  }
+}
+
+/**
+ * 装/卸是市场页的核心动作, 后端早就是公开 REST(POST /skill/install、DELETE /skill/uninstall),
+ * 但页面一直没接上 —— 一个只能看的"市场"不是市场. id 来自第三方平台, 进 DOM 只走 textContent.
+ *
+ * <p>卸载走查询串而不是 /uninstall/{id}: 聚合来的 id 长得就是 source/slug(anthropics/skills/pdf),
+ * 而 Tomcat 默认拒收路径里的 %2F(实测 400, 连 Spring 都没到), 不编码又会被切成两段(404) ——
+ * 换句话说这条路径变量形对**几乎所有**聚合条目都是死的. 放在 ?id= 里编码就没事了.
+ */
+function installButton(s) {
+  const b = el('button', s.installed ? '卸载' : '安装');
+  b.type = 'button';
+  b.addEventListener('click', () => {
+    b.disabled = true;
+    const finish = msg => { setStatus(msg); loadSkills(); };
+    const req = s.installed
+      ? json('/skill/uninstall?id=' + encodeURIComponent(s.id), { method: 'DELETE' })
+      : json('/skill/install', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: s.id, installedBy: 'console' }) });
+    req.then(() => finish((s.installed ? '已卸载 ' : '已安装 ') + s.id))
+       .catch(e => finish(String(e)));
+  });
+  return b;
+}
+
+function setStatus(msg) {
+  document.getElementById('busy').textContent = String(msg || '');
+}
+
+function renderIssues(list) {
+  const tbody = document.querySelector('#issues tbody');
+  clear(tbody);
+  document.getElementById('issue-count').textContent = String(list.length);
+  for (const i of list.slice(0, 200)) {
+    row(tbody, [
+      el('td', i.severity, 'risk-' + i.severity),
+      el('td', el('code', i.code)),
+      el('td', el('code', i.skillId || i.source || '')),
+      el('td', el('code', i.path || '')),
+      i.message
+    ]);
+  }
+}
+
+function addFormatOptions(list) {
+  // 下拉框过滤的是 skill, 所以候选项只能来自 skill 自己的 formatId;
+  // 早先按来源声明格式填的时候, 自动发现的目录全报 unknown, 选项里一个真平台都没有.
+  const select = document.getElementById('format');
+  const have = {};
+  for (const opt of Array.from(select.options)) have[opt.value] = 1;
+  const seen = {};
+  const fresh = [];
+  for (const s of list) {
+    const f = s.formatId;
+    if (f && !have[f] && !seen[f]) { seen[f] = 1; fresh.push(f); }
+  }
+  fresh.sort();
+  for (const f of fresh) {
+    const opt = document.createElement('option');
+    opt.value = f;
+    opt.textContent = f;
+    select.appendChild(opt);
+  }
+}
+
+function addFacetOptions(selectId, allFacets) {
+  // 候选项来自检索引擎算好的 allFacets(带条数), 不是页面自己数的 —— 数出来的口径会和
+  // 服务端筛选不一致. 只增不删: 选定一个筛选条件后结果集会变小, 把选项抹掉就没法换回去了.
+  const select = document.getElementById(selectId);
+  const counts = (allFacets || {})[selectId] || {};
+  const have = {};
+  for (const opt of Array.from(select.options)) have[opt.value] = 1;
+  const fresh = Object.keys(counts).filter(v => !have[v]);
+  fresh.sort();
+  for (const v of fresh) {
+    const opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = v + ' (' + counts[v] + ')';
+    select.appendChild(opt);
+  }
+}
+
+function loadSkills() {
+  const params = new URLSearchParams();
+  const q = document.getElementById('q').value.trim();
+  const format = document.getElementById('format').value;
+  const source = document.getElementById('source').value;
+  const category = document.getElementById('category').value;
+  if (q) params.set('q', q);
+  if (format) params.set('format', format);
+  if (source) params.set('source', source);
+  if (category) params.set('category', category);
+  params.set('perPage', '500');
+  json('/skill/search?' + params.toString())
+    .then(d => { const list = d.skills || d; renderSkills(list, d.skills ? d : {}); })
+    .catch(e => setStatus(String(e)));
+}
+
+function loadAll() {
+  json('/skill/admin/health').then(renderHealth).catch(e => console.warn(String(e)));
+  json('/skill/admin/overview').then(renderOverview).catch(e => console.warn(String(e)));
+  json('/skill/admin/sources').then(renderSources).catch(e => console.warn(String(e)));
+  json('/skill/admin/issues').then(renderIssues).catch(e => console.warn(String(e)));
+  loadSkills();
+}
+
+document.getElementById('refresh').addEventListener('click', () => {
+  const btn = document.getElementById('refresh');
+  btn.disabled = true;
+  setStatus('聚合中…');
+  json('/skill/refresh', { method: 'POST' })
+    .then(() => { setStatus('已刷新'); loadAll(); })
+    .catch(err => setStatus(String(err)))
+    .then(() => { btn.disabled = false; });
+});
+document.getElementById('q').addEventListener('input', () => {
+  clearTimeout(window.__t);
+  window.__t = setTimeout(loadSkills, 250);
+});
+document.getElementById('format').addEventListener('change', loadSkills);
+document.getElementById('source').addEventListener('change', loadSkills);
+document.getElementById('category').addEventListener('change', loadSkills);
+
+loadAll();
+</script>
+</body>
+</html>

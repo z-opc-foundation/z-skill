@@ -1,0 +1,26 @@
+{
+  "data": [
+    {
+      "id": "acme/tools/schedule",
+      "slug": "schedule",
+      "name": "schedule",
+      "source": "acme/tools",
+      "description": "Calendar helpers",
+      "installs": 900
+    },
+    {
+      "id": "acme/tools/invoice",
+      "slug": "invoice",
+      "name": "invoice",
+      "source": "acme/tools",
+      "description": "Invoice parsing",
+      "installs": 800
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "perPage": 2,
+    "total": 5,
+    "hasMore": true
+  }
+}

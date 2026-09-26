@@ -1,0 +1,7 @@
+---
+description: React 组件规范
+globs: "**/*.tsx,**/*.ts"
+alwaysApply: false
+---
+# React rules
+使用函数组件。

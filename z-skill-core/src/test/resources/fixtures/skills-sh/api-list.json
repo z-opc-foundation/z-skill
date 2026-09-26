@@ -1,0 +1,29 @@
+{
+  "data": [
+    {
+      "id": "anthropics/skills/pdf-processing",
+      "slug": "pdf-processing",
+      "name": "pdf-processing",
+      "source": "anthropics/skills",
+      "installs": 12000,
+      "sourceType": "github",
+      "installUrl": "https://skills.sh/anthropics/skills/pdf-processing",
+      "url": "https://github.com/anthropics/skills/tree/main/pdf-processing"
+    },
+    {
+      "id": "vercel/next.js/next-cache",
+      "slug": "next-cache",
+      "name": "next-cache",
+      "source": "vercel/next.js",
+      "installs": 340,
+      "sourceType": "github",
+      "description": "Warm the Next.js cache routes"
+    }
+  ],
+  "pagination": {
+    "page": 0,
+    "perPage": 100,
+    "total": 2,
+    "hasMore": false
+  }
+}

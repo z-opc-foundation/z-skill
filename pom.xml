@@ -18,8 +18,8 @@
     <version>${revision}</version>
     <packaging>pom</packaging>
 
-    <name>z-skill (Skill Registry &amp; Marketplace)</name>
-    <description>Skill 平台: Skill 注册中心 + Marketplace + LLM tool 字段按需注入</description>
+    <name>z-skill (Skill Platform Aggregator)</name>
+    <description>Skill 平台聚合器: 收各家平台 Skill 形状归一化, 再按各家 API 形状反向输出 (Marketplace + 兼容层)</description>
     <url>https://github.com/z-opc-foundation/z-skill</url>
 
     <licenses>
@@ -57,7 +57,7 @@
     </modules>
 
     <properties>
-        <revision>0.1.2</revision>
+        <revision>0.2.0</revision>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -109,6 +109,11 @@
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

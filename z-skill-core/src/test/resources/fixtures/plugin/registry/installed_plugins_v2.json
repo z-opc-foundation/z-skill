@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "plugins": {
+    "demo-tools@demo-market": [
+      {
+        "scope": "user",
+        "installPath": "__PLUGIN_ROOT__",
+        "version": "1.4.0",
+        "installedAt": 1790000000000,
+        "lastUpdated": 1790000001000,
+        "userVisible": false
+      }
+    ]
+  }
+}

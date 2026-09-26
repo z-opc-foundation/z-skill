@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "2026-09-01",
+  "unexpectedTopLevel": [1, 2, 3],
+  "skills": [
+    {
+      "name": "weather-lookup",
+      "description": "Look up\n     current   weather.",
+      "files": [
+        {
+          "path": "SKILL.md",
+          "size": 512,
+          "contentType": "text/markdown"
+        },
+        {
+          "path": "scripts/fetch.py",
+          "size": 2048
+        }
+      ],
+      "license": "MIT",
+      "category": "weather",
+      "tags": ["travel", "http"],
+      "author": "acme-labs",
+      "owner": "acme",
+      "version": "1.2.3",
+      "installs": 7,
+      "updatedAt": 1700000000000,
+      "metadata": {
+        "team": "infra",
+        "version": "9.9.9"
+      },
+      "anthropicOnly": {
+        "nested": ["array", 1, true],
+        "unknown": "value"
+      }
+    },
+    {
+      "description": "没有 name 的条目必须被跳过",
+      "files": ["SKILL.md"]
+    },
+    {
+      "name": "no-description",
+      "files": ["SKILL.md"]
+    }
+  ]
+}

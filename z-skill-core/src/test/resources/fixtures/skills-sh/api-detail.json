@@ -1,0 +1,30 @@
+{
+  "id": "anthropics/skills/pdf-processing",
+  "source": "anthropics/skills",
+  "slug": "pdf-processing",
+  "name": "pdf-processing",
+  "description": "Extract PDF text and fill forms",
+  "installs": 12000,
+  "hash": "sha256:abc123",
+  "sourceType": "github",
+  "files": [
+    {
+      "path": "pdf-processing/SKILL.md"
+    },
+    {
+      "path": "pdf-processing/scripts/x.py"
+    }
+  ],
+  "audits": [
+    {
+      "provider": "Gen Agent Trust Hub",
+      "status": "passed",
+      "riskLevel": "low"
+    },
+    {
+      "provider": "Socket",
+      "status": "flagged",
+      "riskLevel": "medium"
+    }
+  ]
+}

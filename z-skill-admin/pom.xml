@@ -30,5 +30,40 @@
             <artifactId>z-skill-core</artifactId>
             <version>${revision}</version>
         </dependency>
+
+        <!-- @ConditionalOnProperty: 控制面默认关闭, 要靠它把整块 Admin REST 挡在装配之外 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+
+        <!-- 测试: JUnit 5 + ApplicationContextRunner(装配开关要用它), 与 core/starter 保持一致 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.vintage</groupId>
+                    <artifactId>junit-vintage-engine</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- 端到端: 起一个真 servlet 宿主, 用真 HTTP 打控制台页与兼容端点.
+             只有 MockMvc 证不到两件事 —— Boot 的静态资源映射是否真的把 /skill-admin/index.html
+             暴露出来, 以及多段 id 能不能穿过真 Tomcat 的 URI 解析.
+             starter 只在 test 域: 产品侧"starter 不含控制面"这条承诺不能被它自己破坏. -->
+        <dependency>
+            <groupId>io.github.yuku123</groupId>
+            <artifactId>z-skill-starter</artifactId>
+            <version>${revision}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

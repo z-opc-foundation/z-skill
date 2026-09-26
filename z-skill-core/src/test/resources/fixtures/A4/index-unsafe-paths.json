@@ -1,0 +1,32 @@
+{
+  "skills": [
+    {
+      "name": "escape-only",
+      "description": "只声明了穿越目录的路径",
+      "files": [
+        "../../etc/cron.d/zskill"
+      ]
+    },
+    {
+      "name": "absolute-only",
+      "description": "只声明了本机绝对路径",
+      "files": [
+        "/etc/passwd"
+      ]
+    },
+    {
+      "name": "file-scheme",
+      "description": "声明了 file: 协议的外链",
+      "files": [
+        "file:///etc/passwd"
+      ]
+    },
+    {
+      "name": "foreign-origin",
+      "description": "声明了越域 https 绝对 URL",
+      "files": [
+        "https://evil.example.com/other-skill/SKILL.md"
+      ]
+    }
+  ]
+}

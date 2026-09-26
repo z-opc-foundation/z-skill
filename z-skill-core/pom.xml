@@ -16,7 +16,7 @@
     <packaging>jar</packaging>
 
     <name>z-skill-core</name>
-    <description>SkillRegistry + SkillLoader + REST 入口</description>
+    <description>发现 + 归一化 + 聚合 + 检索 + 静态扫描 + REST/兼容出口</description>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -71,6 +71,25 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.vintage</groupId>
+                    <artifactId>junit-vintage-engine</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- 主代码不许碰 servlet(装配契约, 见 CoreStaysServletFreeTest); 只有 MockMvc 那几条测试要拿
+             javax.servlet 的类型做断言, 所以放在 test 域, 连 provided 都不给 — provided 也不会传递到
+             下游模块, 摆在那儿只会诱使主代码再写一次 -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

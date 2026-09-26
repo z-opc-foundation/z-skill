@@ -1,0 +1,48 @@
+{
+  "skills": [
+    {
+      "name": "weather-lookup",
+      "description": "Look up current weather and forecasts.",
+      "files": [
+        "SKILL.md",
+        "scripts/fetch.py",
+        "references/api.md"
+      ],
+      "metadata": {
+        "version": "1.0.0",
+        "author": "acme"
+      },
+      "installs": 4210
+    },
+    {
+      "name": "Bad_Name",
+      "description": "name 不合规, 应被清洗为 bad-name 并记 warning",
+      "files": [
+        "SKILL.md"
+      ]
+    },
+    {
+      "name": "path-escape",
+      "description": "声明了越界文件, 该资源必须被拒绝",
+      "files": [
+        "SKILL.md",
+        "../escape.sh",
+        "/etc/passwd"
+      ]
+    },
+    {
+      "name": "no-skill-md",
+      "description": "files 里没有 skill.md, 只能当目录条目收录",
+      "files": [
+        "readme.txt"
+      ]
+    },
+    {
+      "name": "",
+      "description": "没有 name, 直接丢弃",
+      "files": [
+        "SKILL.md"
+      ]
+    }
+  ]
+}
