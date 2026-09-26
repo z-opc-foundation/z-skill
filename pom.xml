@@ -203,6 +203,9 @@
                         <extensions>true</extensions>
                         <configuration>
                             <publishingServerId>central</publishingServerId>
+                            <!-- 缺这一行时 deploy 只会把 deployment 推到 validated 态(插件默认 autoPublish=false),
+                                 构件对外不可见, 而 Maven 一路报 BUILD SUCCESS. 与 z-msg/z-schedule/z-graph/z-llm 一致. -->
+                            <autoPublish>true</autoPublish>
                         </configuration>
                     </plugin>
                 </plugins>
