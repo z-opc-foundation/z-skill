@@ -79,7 +79,7 @@
 
     <properties>
         <!-- CI-friendly 版本: 子模块 <parent> 与本仓 DM 自钉都引用它; flatten(resolveCiFriendliesOnly)负责展开 -->
-        <revision>0.2.0</revision>
+        <revision>0.2.1</revision>
 
         <!-- maven.compiler.source/target=8、project.build.sourceEncoding=UTF-8、
              spring-boot.version=2.7.18 三个键由父链提供, 已删除(本仓不再重复声明). -->
