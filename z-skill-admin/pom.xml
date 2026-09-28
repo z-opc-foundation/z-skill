@@ -18,17 +18,14 @@
     <name>z-skill-admin</name>
     <description>控制面 REST + 内置 HTML (skills/categories 视图)</description>
 
-    <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+    <!-- 原 <properties> 的 maven.compiler.source/target=8、project.build.sourceEncoding=UTF-8 已删除:
+         父链 z-boot-parent:1.0.19 提供同值. -->
 
     <dependencies>
+        <!-- 版本由仓库根 dependencyManagement 的 project.version 自钉提供(不再写 revision 属性) -->
         <dependency>
             <groupId>io.github.yuku123</groupId>
             <artifactId>z-skill-core</artifactId>
-            <version>${revision}</version>
         </dependency>
 
         <!-- @ConditionalOnProperty: 控制面默认关闭, 要靠它把整块 Admin REST 挡在装配之外 -->
@@ -57,7 +54,6 @@
         <dependency>
             <groupId>io.github.yuku123</groupId>
             <artifactId>z-skill-starter</artifactId>
-            <version>${revision}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

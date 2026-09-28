@@ -18,9 +18,8 @@
     <name>z-skill-api (DTO)</name>
     <description>Skill 平台 DTO + 异常, 零依赖</description>
 
-    <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+    <!--
+        原 <properties> 的 maven.compiler.source/target=8 与 project.build.sourceEncoding=UTF-8 已删除:
+        父链 z-boot-parent:1.0.19 的 properties 提供同值(maven.compiler.source/target=8, 编码 UTF-8).
+    -->
 </project>

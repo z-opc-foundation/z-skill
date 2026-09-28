@@ -18,17 +18,15 @@
     <name>z-skill-core</name>
     <description>发现 + 归一化 + 聚合 + 检索 + 静态扫描 + REST/兼容出口</description>
 
-    <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+    <!-- 原 <properties> 的 maven.compiler.source/target=8、project.build.sourceEncoding=UTF-8 已删除:
+         父链 z-boot-parent:1.0.19 提供同值. -->
 
     <dependencies>
+        <!-- 版本由仓库根 dependencyManagement 的 project.version 自钉提供(不再写 revision 属性),
+             这样 reactor 版本不会被 z-boot-fleet 的 z-skill* 槽位改写. -->
         <dependency>
             <groupId>io.github.yuku123</groupId>
             <artifactId>z-skill-api</artifactId>
-            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>io.github.yuku123</groupId>
@@ -47,6 +45,10 @@
             <artifactId>z-agent-kernel-tool</artifactId>
         </dependency>
 
+        <!-- 以下第三方坐标(spring-web/spring-webmvc/spring-boot/jackson-databind/slf4j-api/
+             junit:junit/spring-boot-starter-test/javax.servlet-api)原本靠本仓 import 的
+             spring-boot-dependencies:2.7.18 给版本; 现在由父链 z-boot-dependencies:1.0.19 里
+             同一版 spring-boot-dependencies:2.7.18 给 — 依赖声明不动, 一行 <version> 都不必留. -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>

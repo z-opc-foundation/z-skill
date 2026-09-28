@@ -5,6 +5,27 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!--
+        统一消费入口: z-boot-parent:1.0.19 + 空 relativePath (见 z-boot README「消费模型」).
+        父链 = z-boot-parent:1.0.19 -> z-boot-dependencies:1.0.19 (第三方地板) + import z-boot-fleet:1.0.0 (兄弟仓坐标槽位).
+        父链已实测 supplied 的内容(本仓因此删掉了这些本地声明):
+          - java.version=1.8 / maven.compiler.source=target=8 / project.build.sourceEncoding=UTF-8
+          - maven-compiler-plugin 3.11.0 与 maven-surefire-plugin 2.22.2 的 pluginManagement(含 -parameters)
+          - spring-boot.version=2.7.18(即本仓原来 spring-boot-dependencies import 的版本)
+          - jackson-bom 2.18.6 / netty-bom 4.1.138.Final / junit-bom 5.9.3 / spring-framework-bom 5.3.39
+        注意两个坑(本仓已按 z-cache/z-graph 的做法处理):
+          1) 父链"直接 DM"优先于子 pom 的 BOM import, 所以值不同的依赖(z-agent-kernel 0.1.0 vs 父链槽位 0.1.1)
+             必须保留本仓直接 DM 条目, 见下方 properties 与 dependencyManagement 注释;
+          2) z-boot-fleet 里 z-skill* 槽位是固定版本, 会改写 reactor 里的传递版本,
+             所以本仓 5 个自有坐标全部用 project.version 属性直接钉住.
+    -->
+    <parent>
+        <groupId>io.github.yuku123</groupId>
+        <artifactId>z-boot-parent</artifactId>
+        <version>1.0.19</version>
+        <relativePath/>
+    </parent>
+
+    <!--
         z-skill: Skill 注册中心 + Marketplace.
         - api: 零依赖 DTO + exception
         - core: SkillRegistry (内存版) + SkillLoader (文件系统扫 .md frontmatter) + REST 入口
@@ -57,25 +78,61 @@
     </modules>
 
     <properties>
+        <!-- CI-friendly 版本: 子模块 <parent> 与本仓 DM 自钉都引用它; flatten(resolveCiFriendliesOnly)负责展开 -->
         <revision>0.2.0</revision>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <spring-boot.version>2.7.18</spring-boot.version>
+        <!-- maven.compiler.source/target=8、project.build.sourceEncoding=UTF-8、
+             spring-boot.version=2.7.18 三个键由父链提供, 已删除(本仓不再重复声明). -->
+
+        <!-- 【必须保留: 与父链值不同的分歧】
+             z-boot-fleet:1.0.0 给 io.github.yuku123:z-agent-kernel-* 的槽位是 0.1.1, 而本仓自 0.2.0 基线起
+             一直是编译/测试在 0.1.0 上. 父链的直接 DM 优先级高于子 pom 的 BOM import, 光删属性不会生效,
+             所以下面保留 4 条直接 DM 条目把 kernel 钉在 0.1.0.
+             升到 0.1.1 是一次独立的依赖升级决定(需要跑 kernel 侧兼容性), 不在"统一继承 parent"这次改动里做. -->
         <z-agent-kernel.version>0.1.0</z-agent-kernel.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <!--
+                org.springframework.boot:spring-boot-dependencies 的 import 已删除:
+                父链 z-boot-dependencies:1.0.19 自己 import 了同版本 spring-boot-dependencies(2.7.18),
+                第三方坐标(spring-web/spring-webmvc/spring-boot/spring-boot-autoconfigure/
+                spring-boot-starter-test/spring-boot-starter-web/jackson-databind/slf4j-api/junit:junit/
+                javax.servlet-api/junit-vintage-engine)全部由地板给出, 见 mvn help:effective-pom 复核.
+            -->
+
+            <!-- 自钉: 本仓 reactor 的 5 个坐标. z-boot-fleet 里 z-skill* 槽位是固定版本(0.2.0),
+                 一旦本仓 revision 升号就会与槽位不一致而静默改写传递版本;
+                 用 project.version 保证自钉永远等于当前构建版本. -->
             <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring-boot.version}</version>
+                <groupId>io.github.yuku123</groupId>
+                <artifactId>z-skill</artifactId>
+                <version>${project.version}</version>
                 <type>pom</type>
-                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.github.yuku123</groupId>
+                <artifactId>z-skill-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.yuku123</groupId>
+                <artifactId>z-skill-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.yuku123</groupId>
+                <artifactId>z-skill-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.yuku123</groupId>
+                <artifactId>z-skill-admin</artifactId>
+                <version>${project.version}</version>
             </dependency>
 
+            <!-- 分歧保留(见 properties 注释): 4 条直接条目覆盖 z-boot-fleet 的 0.1.1 槽位 -->
             <dependency>
                 <groupId>io.github.yuku123</groupId>
                 <artifactId>z-agent-kernel-skill</artifactId>
@@ -96,25 +153,50 @@
                 <artifactId>z-agent-kernel-tool</artifactId>
                 <version>${z-agent-kernel.version}</version>
             </dependency>
+
+            <!-- 【拒绝地板把版本往下改】z-boot-dependencies:1.0.19 直接 DM 里这几条 legacy 值
+                 (objenesis 2.6 / asm 9.2 / json-smart 2.4.9, 属性 json-smart.version=2.4.9) 比本仓基线树里
+                 实测解析出的版本低(objenesis 3.2 / asm 9.3 / json-smart+accessors-smart 2.4.11),
+                 而 objenesis 3.2 与 asm 9.3 正是 mockito-core 4.5.1 与 accessors-smart 2.4.11 自己声明的依赖.
+                 继承 DM 会改写传递依赖版本, 所以按坐标写直接条目钉回基线值.
+                 地板的往上抬(spring 5.3.31→5.3.39 / jackson 2.13.5→2.18.6 / junit 5.8.2→5.9.3 /
+                 json-path 2.7.0→2.9.0)是有意的安全与统一策略, 不在这里回退. -->
+            <dependency>
+                <groupId>org.objenesis</groupId>
+                <artifactId>objenesis</artifactId>
+                <version>3.2</version>
+            </dependency>
+            <dependency>
+                <groupId>net.minidev</groupId>
+                <artifactId>json-smart</artifactId>
+                <version>2.4.11</version>
+            </dependency>
+            <dependency>
+                <groupId>net.minidev</groupId>
+                <artifactId>accessors-smart</artifactId>
+                <version>2.4.11</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm</artifactId>
+                <version>9.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm</artifactId>
+                <version>9.3</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.15.0</version>
-                <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version>
-            </plugin>
+            <!--
+                maven-compiler-plugin(3.15.0 + source/target 配置) 与 maven-surefire-plugin(3.2.5) 已删除:
+                父链 pluginManagement 提供 maven-compiler-plugin 3.11.0(source/target=8、UTF-8、-parameters)
+                与 maven-surefire-plugin 2.22.2. 实测(见迁移记录): 删掉本地 surefire 3.2.5 后
+                JUnit4(junit:junit) 与 spring-boot-starter-test(JUnit5) 的用例数与失败集与基线一致.
+            -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
@@ -126,6 +208,10 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>
+                <!-- 【保留版本的理由】父链 property flatten-maven-plugin.version=1.7.3, 本仓基线一直用 1.7.2;
+                     统一继承 parent 不应顺带改构建插件版本, 所以显式钉住 1.7.2(升 1.7.3 另议).
+                     <configuration> 也必须留在本 pom: z-boot-parent 的 flatten execution 是 inherited=false,
+                     而 CI-friendly 的 revision 属性必须被展开才能发布. -->
                 <version>1.7.2</version>
                 <configuration>
                     <updatePomFile>true</updatePomFile>
