@@ -78,8 +78,8 @@
     </modules>
 
     <properties>
-        <!-- CI-friendly 版本: 子模块 <parent> 与本仓 DM 自钉都引用它; flatten(resolveCiFriendliesOnly)负责展开 -->
-        <revision>0.2.1</revision>
+        <!-- CI-friendly 版本: 子模块 <parent> 与本仓 DM 自钉都引用它; flatten(oss)负责展开 -->
+        <revision>0.2.2</revision>
 
         <!-- maven.compiler.source/target=8、project.build.sourceEncoding=UTF-8、
              spring-boot.version=2.7.18 三个键由父链提供, 已删除(本仓不再重复声明). -->
@@ -211,11 +211,14 @@
                 <!-- 【保留版本的理由】父链 property flatten-maven-plugin.version=1.7.3, 本仓基线一直用 1.7.2;
                      统一继承 parent 不应顺带改构建插件版本, 所以显式钉住 1.7.2(升 1.7.3 另议).
                      <configuration> 也必须留在本 pom: z-boot-parent 的 flatten execution 是 inherited=false,
-                     而 CI-friendly 的 revision 属性必须被展开才能发布. -->
+                     而 CI-friendly 的 revision 属性必须被展开才能发布.
+                     flattenMode=oss（2026-09-29 从 resolveCiFriendliesOnly 改）：旧模式发布的 pom 留着
+                     <parent>z-skill</parent> 且依赖不带版本, 外部消费者得顺着我们的 parent 链补版本;
+                     oss 剥 parent + 版本落字面, 与 z-mq/z-cache/z-gw/z-llm 同形状. -->
                 <version>1.7.2</version>
                 <configuration>
                     <updatePomFile>true</updatePomFile>
-                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                    <flattenMode>oss</flattenMode>
                 </configuration>
                 <executions>
                     <execution>
