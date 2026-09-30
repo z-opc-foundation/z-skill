@@ -391,7 +391,7 @@ public class RealWorldSkillCorpusTest {
 
         // 实测 30 个候选 = 27 个 SKILL.md + 2 个平铺 .md(lead 的 踩坑记录/Maven_Central_发布踩坑记录.md
         // 与 005_skills 的 audit-config-incubation-menu-2026Q4.md) + 1 个 AGENTS.md.
-        // 那个 AGENTS.md 是 z-opc 根目录指向 _doc/008_misc/ai-docs/AGENTS.md 的<b>符号链接</b> ——
+        // 那个 AGENTS.md 是 z-opc 根目录指向 z-opc/_doc/008_misc/ai-docs/AGENTS.md 的<b>符号链接</b> ——
         // 真实仓库就这么写(Codex/Claude 官方推荐), 扫描器一刀切跳过符号链接会让 AGENTS_MD 形状整条消失,
         // 候选数掉到 29 且没有任何一条 issue 说明它去哪了.
         assertTrue(f.report.getRawCount() >= 30, "候选条目只有 " + f.report.getRawCount() + " 个, 语料没被扫全: "
@@ -546,7 +546,7 @@ public class RealWorldSkillCorpusTest {
                 "规范外键要原样透传, 哪怕是长得像路径的值");
 
         // 真实的 z-opc/AGENTS.md 完全没有 frontmatter, 按 AGENTS_MD 形状仍须收录
-        // (它在盘上是指向 _doc/008_misc/ai-docs/AGENTS.md 的符号链接 —— 真实仓库的标准写法)
+        // (它在盘上是指向 z-opc/_doc/008_misc/ai-docs/AGENTS.md 的符号链接 —— 真实仓库的标准写法)
         SkillDto agents = f.byId("z-opc-instructions");
         assertEquals("AGENTS.md", agents.getSkillFilePath());
         assertEquals(SkillFormat.AGENTS_MD, agents.getFormat());
