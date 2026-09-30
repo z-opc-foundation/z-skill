@@ -19,7 +19,7 @@
 | **当前版本** | `0.2.2`（根 POM `<revision>`，CI-friendly + flatten-maven-plugin `flattenMode=oss`，2026-09-29 从 `resolveCiFriendliesOnly` 改过来） |
 | **父项目** | `io.github.yuku123:z-boot-parent:1.0.21`（`<relativePath/>` 留空；根 POM 顶部注释仍写着 1.0.19，那是上一轮消费者改造留下的**陈旧注释**，实测 `<parent>` 已是 1.0.21） |
 | **模块数** | 4（`z-skill-api` / `z-skill-core` / `z-skill-starter` / `z-skill-admin`），5 个坐标含聚合 POM |
-| **Maven Central** | **已发布**：`0.1.0`/`0.1.1`/`0.1.2`/`0.2.0`/`0.2.1`/`0.2.2` 六个版本的 api/core/starter/admin 的 `.pom` 与 `.jar` 均可从 repo1 取回（ranged GET 实测 206；`maven-metadata.xml` latest/release 均为 `0.2.2`；反向对照 `0.2.3` 回 404）。`_doc/发布到Central/` 那篇记的是 **0.2.0 那一趟**，不是当前版本号 |
+| **Maven Central** | **已发布**：`0.1.0`/`0.1.1`/`0.1.2`/`0.2.0`/`0.2.1`/`0.2.2` 六个版本的 api/core/starter/admin 的 `.pom` 与 `.jar` 均可从 repo1 取回（ranged GET 实测 206；`maven-metadata.xml` latest/release 均为 `0.2.2`；反向对照 `0.2.3` 回 404）。[`_doc/006_release/`](_doc/006_release/) 那篇记的是 **0.2.0 那一趟**，不是当前版本号 |
 | **默认端口** | 本仓不带端口（无可启动应用、无 yml）。测试宿主 `SkillHostLauncher` 读 `-Dserver.port`，缺省 `18099`；生产端口由宿主 `server.port` 决定 |
 | **运行口径** | Java 8 · Spring Boot 2.7.18（版本口径与第三方地板均由父链 `z-boot-parent` → `z-boot-dependencies` 供给，本仓 POM 不再重复声明） |
 | **下游 pin** | `z-boot-fleet` 的 `z-skill.version` 现为 `0.2.2`（全组织 `pom.xml` 里唯一一处该 pin）；对外一行集成走 `io.github.yuku123:z-boot-skill-starter:1.0.21`（它只依赖 `z-skill-starter`） |
@@ -331,7 +331,7 @@ mvn -o -pl z-skill-core -am -Dtest=HttpFetcherJdkLiveTest test   # 单类
 ```
 
 测试类分布（实测 `find */src/test -name '*Test.java'`）：core 24、admin 4、starter 1、api 0。
-0.2.0 那一趟发布构建的全量读数记在 `_doc/发布到Central/`：330 条 / 0 失败 / 0 错误（core 295、starter 12、admin 23）；
+0.2.0 那一趟发布构建的全量读数记在 [`_doc/006_release/`](_doc/006_release/)：330 条 / 0 失败 / 0 错误（core 295、starter 12、admin 23）；
 本次 README 更新**没有重跑 mvn**，所以那个数是那一趟的读数，不是今天的读数。
 
 分层：frontmatter/规范解析边界 → 各家形状适配器 → 文件系统扫描与插件清单派生 → 远端取数在**真 socket**
@@ -351,7 +351,7 @@ mvn -o -pl z-skill-core -am -Dtest=HttpFetcherJdkLiveTest test   # 单类
 2. `SkillControllerTest.unreadableContentReasonCarriesNoHostPath` 用 `assumeTrue` 要求文件系统支持 `posix`
    权限位；非 POSIX 文件系统上这条会跳过（即该分支在那类机器上未被验证）。
 
-量具欠账登记在 `_doc/待办事项/feature003_gauge_gaps/`：`HttpFetcher` 的状态码判定对 500 是**等价变异**
+量具欠账登记在 `_doc/007_backlog/feature003_gauge_gaps/`：`HttpFetcher` 的状态码判定对 500 是**等价变异**
 （JDK 自己就抛，摘掉不红；真正拦住的是跨协议 307），UTF-8 那条在本机等价（`file.encoding=UTF-8`）。
 
 ---
@@ -363,7 +363,7 @@ mvn -o clean install            # 日常构建：离线
 mvn clean deploy -Pcentral      # 发布那一遍：绝对不要带 -o
 ```
 
-⚠ 实测过的雷（记录在 `_doc/发布到Central/001_0.2.0发布与对账.md`）：`mvn -o deploy -Pcentral`
+⚠ 实测过的雷（记录在 `_doc/006_release/001_0.2.0发布与对账.md`）：`mvn -o deploy -Pcentral`
 会**静默什么都不发**并印 BUILD SUCCESS（插件对每个模块提示 offline 下 skip publish）。
 判"发没发"只认 repo1 的构件状态码 + `maven-metadata.xml`：`curl` 对 404 的 shell rc 仍是 0，
 用 rc 判会全绿；本仓实测 Sonatype 发布状态 API 两轮都返 HTTP 500，也不作数。
@@ -385,15 +385,15 @@ _Maintained by the z-opc-foundation organization._
 本仓 `_doc/` **没有**按组织的编号收口（不是 `001_arch` / `002_deploy` / `003_script` / `004_skill` 那棵树），
 下面是现有真实文件的全量链接，不编造 conforming 结构：
 
-- [`_doc/发布到Central/`](_doc/发布到Central/) — Central 发布与对账记录（一趟的全程判据，供下一趟照着跑）:
-  - [`001_0.2.0发布与对账.md`](_doc/发布到Central/001_0.2.0发布与对账.md) — `0.2.0` 那一趟的提交/上传/可见/字节对账/验签/标签读数，
+- [`_doc/006_release/`](_doc/006_release/) — Central 发布与对账记录（一趟的全程判据，供下一趟照着跑）:
+  - [`001_0.2.0发布与对账.md`](_doc/006_release/001_0.2.0发布与对账.md) — `0.2.0` 那一趟的提交/上传/可见/字节对账/验签/标签读数，
     含上面「发布」两节里那几条雷的取数命令，以及 §7"本机跑的确实是发布字节"怎么量（`bind(0)` 那条教训）。状态：**已闭合**。
-- [`_doc/待办事项/`](_doc/待办事项/) — 要人拍板或要等外部条件的事项登记（每条一个 `featureNNN_<名字>/` 目录）:
-  - [`README.md`](_doc/待办事项/README.md) — 待办索引：两格现状、登记口径（"数字一律现场测，不许抄文档里的旧数"）。
-  - [`feature002_downstream_pins/001_抬pin与验证.md`](_doc/待办事项/feature002_downstream_pins/001_抬pin与验证.md) —
+- [`_doc/007_backlog/`](_doc/007_backlog/) — 要人拍板或要等外部条件的事项登记（每条一个 `featureNNN_<名字>/` 目录）:
+  - [`README.md`](_doc/007_backlog/README.md) — 待办索引：两格现状、登记口径（"数字一律现场测，不许抄文档里的旧数"）。
+  - [`feature002_downstream_pins/001_抬pin与验证.md`](_doc/007_backlog/feature002_downstream_pins/001_抬pin与验证.md) —
     抬下游 `z-skill.version` pin 的验证方法。**注**：文里记的"z-boot 已抬 / z-opc 两处仍 0.1.2"是 09-26 的读数，
     今天实测全组织只剩 `z-boot-fleet` 一处 `z-skill.version=0.2.2`（`rg "z-skill\.version>" -g 'pom.xml'`）。
-  - [`feature003_gauge_gaps/001_待排产.md`](_doc/待办事项/feature003_gauge_gaps/001_待排产.md) — 量具上三个洞
+  - [`feature003_gauge_gaps/001_待排产.md`](_doc/007_backlog/feature003_gauge_gaps/001_待排产.md) — 量具上三个洞
     （两支等价变异 + 一条下游占位断言），状态：**待排产**（不等裁定，等归属）。
 
 架构、部署、脚本类的文档目前本仓没有；能力与契约以本 README 上文（每条都对应到 `src/main` 里的类或注解）
