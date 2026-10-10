@@ -13,7 +13,7 @@ export const menuItems = [
     { key: '/z-skill/catalog', label: '技能目录', icon: <AppstoreOutlined /> },
 ]
 
-export const routeTable = [
+export const routes = [
     { path: '/z-skill/home', Component: HomePage },
     { path: '/z-skill/catalog', Component: Catalog },
 ]
