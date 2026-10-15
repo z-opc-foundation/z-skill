@@ -1,6 +1,5 @@
 package com.zifang.z.skill.core.discover;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zifang.z.skill.api.dto.AggregateReportDto;
 import com.zifang.z.skill.api.dto.SkillSourceDto;
 import com.zifang.z.skill.api.spec.SkillFormat;
@@ -33,7 +32,7 @@ public class PluginManifestReaderTest {
     @TempDir
     Path tmp;
 
-    private final PluginManifestReader reader = new PluginManifestReader(new ObjectMapper());
+    private final PluginManifestReader reader = new PluginManifestReader();
     private final SkillSource parent = new SkillSource("fs-plugin", SkillFormat.PLUGIN_MANIFEST, "/plugins", 60);
 
     private Path write(Path file, String json) throws IOException {
@@ -156,7 +155,7 @@ public class PluginManifestReaderTest {
         writeSkillMd(pluginRoot.resolve("skills").resolve("ocr"), "ocr", "识别发票");
 
         SkillRegistry registry = new SkillRegistry();
-        SkillAggregator agg = new SkillAggregator(registry, new ObjectMapper());
+        SkillAggregator agg = new SkillAggregator(registry);
         agg.addSource(new SkillSource("plugins", SkillFormat.PLUGIN_MANIFEST,
                 tmp.resolve("plugins").toString(), 60));
         AggregateReportDto report = agg.refresh();

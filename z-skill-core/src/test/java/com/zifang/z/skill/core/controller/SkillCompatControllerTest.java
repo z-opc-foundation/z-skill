@@ -1,7 +1,7 @@
 package com.zifang.z.skill.core.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zifang.util.json.JsonCursor;
+import com.zifang.util.json.JsonUtil;
 import com.zifang.z.skill.api.dto.SkillDto;
 import com.zifang.z.skill.api.dto.SkillIssueDto;
 import com.zifang.z.skill.api.spec.SkillFormat;
@@ -49,7 +49,6 @@ public class SkillCompatControllerTest {
     private static final String SH_SOURCE = "skills-sh";
     private static final String INDEX_SOURCE = "acme-registry";
 
-    private final ObjectMapper mapper = new ObjectMapper();
     private SkillRegistry registry;
     private MockMvc mvc;
 
@@ -62,7 +61,7 @@ public class SkillCompatControllerTest {
         RawSkill indexRaw = new RawSkill().format(SkillFormat.REGISTRY_INDEX)
                 .entry(fixture(INDEX_CP)).entryRelative(".well-known/agent-skills/index.json")
                 .origin(fixture(INDEX_CP).toUri().toString()).fallbackName("index.json");
-        for (SkillDto dto : new RegistryIndexNormalizer(mapper).normalize(indexRaw, indexSource, issues)) {
+        for (SkillDto dto : new RegistryIndexNormalizer().normalize(indexRaw, indexSource, issues)) {
             String id = "weather-lookup".equals(dto.getSlug()) ? indexSource.getId() + "/" + dto.getSlug()
                     : dto.getSlug();
             registry.register(dto.toBuilder().id(id).build());
@@ -74,7 +73,7 @@ public class SkillCompatControllerTest {
                 .fallbackName("detail");
         RawSkill list = new RawSkill().format(SkillFormat.SKILLS_SH_API).entry(fixture(LIST_CP))
                 .origin(SH_API_URL).entryRelative(SH_API_URL).fallbackName("list");
-        SkillsShApiNormalizer sh = new SkillsShApiNormalizer(mapper);
+        SkillsShApiNormalizer sh = new SkillsShApiNormalizer();
         for (SkillDto dto : sh.normalize(detail, shSource, issues)) {
             registry.register(dto.toBuilder().id(dto.getSlug()).build());
         }
@@ -267,17 +266,17 @@ public class SkillCompatControllerTest {
                 .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
         assertTrue(utf8.contains("files \u91cc\u6ca1\u6709 skill.md"), "响应编码把第三方中文描述弄坏了: " + utf8);
 
-        JsonNode root = wellKnownRoot();
+        JsonCursor root = wellKnownRoot();
         List<String> names = new ArrayList<String>();
-        for (JsonNode node : root.get("skills")) {
-            names.add(node.get("name").asText());
-            assertTrue(node.has("description"), "索引条目必须带 description: " + node.get("name"));
-            assertTrue(node.get("files").isArray() && node.get("files").size() > 0,
-                    "files 必须是非空数组: " + node.get("name"));
-            for (JsonNode f : node.get("files")) {
+        for (JsonCursor node : root.path("skills").elements()) {
+            names.add(node.path("name").asText());
+            assertTrue(node.has("description"), "索引条目必须带 description: " + node.path("name"));
+            assertTrue(node.path("files").isArray() && node.path("files").size() > 0,
+                    "files 必须是非空数组: " + node.path("name"));
+            for (JsonCursor f : node.path("files").elements()) {
                 String path = f.asText();
-                assertTrue(SkillSpec.NAME.matcher(node.get("name").asText()).matches(),
-                        "索引 name 必须合规(Agent Skills 硬约束): " + node.get("name"));
+                assertTrue(SkillSpec.NAME.matcher(node.path("name").asText()).matches(),
+                        "索引 name 必须合规(Agent Skills 硬约束): " + node.path("name"));
                 assertTrue(!path.startsWith("/"), "路径不得绝对: " + path);
                 assertTrue(!path.contains(".."), "路径不得越界: " + path);
                 assertTrue(!path.contains("://"), "路径不得是外部 URL: " + path);
@@ -294,11 +293,11 @@ public class SkillCompatControllerTest {
 
     @Test
     public void wellKnownIndex_entryAdvertisesItsOwnSkillMdPath() throws Exception {
-        JsonNode root = wellKnownRoot();
-        for (JsonNode node : root.get("skills")) {
-            String first = node.get("files").get(0).asText();
+        JsonCursor root = wellKnownRoot();
+        for (JsonCursor node : root.path("skills").elements()) {
+            String first = node.path("files").at(0).asText();
             assertTrue(first.toLowerCase().endsWith("skill.md"),
-                    node.get("name").asText() + " 的主文件位被吐成 " + first
+                    node.path("name").asText() + " 的主文件位被吐成 " + first
                             + " —— 那是索引文档自己, 不是这个 skill 的 SKILL.md");
         }
     }
@@ -440,14 +439,14 @@ public class SkillCompatControllerTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
         List<String> actual = new ArrayList<String>();
-        for (JsonNode n : mapper.readTree(body).get("data")) actual.add(n.get("id").asText());
+        for (JsonCursor n : JsonCursor.of(JsonUtil.parse(body)).path("data").elements()) actual.add(n.path("id").asText());
         org.junit.jupiter.api.Assertions.assertEquals(ids, actual);
     }
 
-    private JsonNode wellKnownRoot() throws Exception {
+    private JsonCursor wellKnownRoot() {
         Map<String, Object> body = new SkillCompatController(registry, new SkillSearchEngine(registry),
                 new SkillContentReader()).wellKnownIndex();
-        return mapper.readTree(mapper.writeValueAsString(body));
+        return JsonCursor.of(JsonUtil.toPlainValue(JsonUtil.parse(JsonUtil.toJson(body))));
     }
 
     private List<String> namesInRegistryOrder() {

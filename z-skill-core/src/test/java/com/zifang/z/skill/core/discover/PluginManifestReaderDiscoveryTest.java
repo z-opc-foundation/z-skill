@@ -1,6 +1,5 @@
 package com.zifang.z.skill.core.discover;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zifang.z.skill.api.dto.SkillIssueDto;
 import com.zifang.z.skill.api.spec.SkillFormat;
 import org.junit.jupiter.api.Test;
@@ -34,7 +33,7 @@ public class PluginManifestReaderDiscoveryTest {
 
     private static final Path FIXTURES = fixturesRoot();
 
-    private final PluginManifestReader reader = new PluginManifestReader(new ObjectMapper());
+    private final PluginManifestReader reader = new PluginManifestReader();
     private final FilesystemScanner scanner = new FilesystemScanner();
 
     @TempDir

@@ -1,6 +1,5 @@
 package com.zifang.z.skill.core.aggregate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zifang.util.json.JsonUtil;
 import com.zifang.z.skill.api.dto.AggregateReportDto;
 import com.zifang.z.skill.api.dto.SkillDto;
@@ -63,26 +62,24 @@ public class SkillAggregator {
     private final SkillRegistry registry;
     private final PluginManifestReader pluginReader;
     private final SkillSecurityScanner securityScanner;
-    private final ObjectMapper mapper;
     private HttpFetcher httpFetcher = new HttpFetcher.Jdk();
 
-    public SkillAggregator(SkillRegistry registry, ObjectMapper mapper) {
-        this(registry, mapper, new SkillSecurityScanner());
+    public SkillAggregator(SkillRegistry registry) {
+        this(registry, new SkillSecurityScanner());
     }
 
-    public SkillAggregator(SkillRegistry registry, ObjectMapper mapper, SkillSecurityScanner securityScanner) {
+    public SkillAggregator(SkillRegistry registry, SkillSecurityScanner securityScanner) {
         this.registry = registry;
-        this.mapper = mapper == null ? new ObjectMapper() : mapper;
         this.securityScanner = securityScanner;
-        this.pluginReader = new PluginManifestReader(this.mapper);
+        this.pluginReader = new PluginManifestReader();
         MarkdownSkillNormalizer markdown = new MarkdownSkillNormalizer();
         normalizers.put(SkillFormat.AGENT_SKILLS, markdown);
         normalizers.put(SkillFormat.FLAT_MARKDOWN, markdown);
         normalizers.put(SkillFormat.CURSOR_RULES, markdown);
         normalizers.put(SkillFormat.AGENTS_MD, markdown);
         normalizers.put(SkillFormat.COPILOT_INSTRUCTIONS, markdown);
-        normalizers.put(SkillFormat.REGISTRY_INDEX, new RegistryIndexNormalizer(this.mapper));
-        normalizers.put(SkillFormat.SKILLS_SH_API, new SkillsShApiNormalizer(this.mapper));
+        normalizers.put(SkillFormat.REGISTRY_INDEX, new RegistryIndexNormalizer());
+        normalizers.put(SkillFormat.SKILLS_SH_API, new SkillsShApiNormalizer());
     }
 
     public SkillAggregator addSource(SkillSource source) {

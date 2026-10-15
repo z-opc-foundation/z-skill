@@ -1,7 +1,7 @@
 package com.zifang.z.skill.core.e2e;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zifang.util.json.JsonCursor;
+import com.zifang.util.json.JsonUtil;
 import com.zifang.z.skill.api.dto.AggregateReportDto;
 import com.zifang.z.skill.api.dto.SkillDto;
 import com.zifang.z.skill.api.dto.SkillIssueDto;
@@ -94,7 +94,6 @@ public class RealWorldSkillCorpusTest {
         final SkillRegistry registry = new SkillRegistry();
         final SkillAggregator aggregator;
         final AggregateReportDto report;
-        final ObjectMapper mapper = new ObjectMapper();
         /** key = sourceId + "|" + 斜杠化的相对 SKILL.md 路径 —— 本测试独立走盘得到的"应收录条目". */
         final Map<String, Path> expectedSkillMd = new TreeMap<String, Path>();
 
@@ -116,7 +115,7 @@ public class RealWorldSkillCorpusTest {
                 sourceRoots.put("corpus-agents-md", opcRoot);
             }
             assertFalse(sources.isEmpty(), "一个语料来源都没挂上, 根=" + root);
-            this.aggregator = new SkillAggregator(registry, new ObjectMapper());
+            this.aggregator = new SkillAggregator(registry);
             for (SkillSource s : sources) aggregator.addSource(s);
             this.report = aggregator.refresh();
             for (SkillSource s : sources) {
@@ -277,7 +276,11 @@ public class RealWorldSkillCorpusTest {
         return n;
     }
 
-    private static RawSkill jsonRaw(SkillFormat format, String origin, String entryRelative, JsonNode payload) {
+    private static Object tree(Object pojo) {
+        return JsonUtil.parse(JsonUtil.toJson(pojo));
+    }
+
+    private static RawSkill jsonRaw(SkillFormat format, String origin, String entryRelative, Object payload) {
         return new RawSkill().format(format).origin(origin).entryRelative(entryRelative)
                 .fallbackName(entryRelative) .json(payload);
     }
@@ -831,8 +834,8 @@ public class RealWorldSkillCorpusTest {
 
         List<SkillIssueDto> issues = new ArrayList<SkillIssueDto>();
         SkillSource emitted = new SkillSource("zskill-emitted", SkillFormat.REGISTRY_INDEX, EMITTED_INDEX_URL, 40);
-        JsonNode payload = f.mapper.valueToTree(index);
-        List<SkillDto> back = new RegistryIndexNormalizer(f.mapper).normalize(
+        Object payload = tree(index);
+        List<SkillDto> back = new RegistryIndexNormalizer().normalize(
                 jsonRaw(SkillFormat.REGISTRY_INDEX, EMITTED_INDEX_URL, ".well-known/agent-skills/index.json", payload),
                 emitted, issues);
 
@@ -883,9 +886,9 @@ public class RealWorldSkillCorpusTest {
                 "补出来的 SKILL.md 位不该把真实主文件顶掉, AGENTS.md 自己必须还在清单里: " + agentsFiles);
 
         Set<String> entriesWithoutSkillMdSlot = new LinkedHashSet<String>();
-        for (JsonNode node : payload.path("skills")) {
+        for (JsonCursor node : JsonCursor.of(payload).path("skills").elements()) {
             boolean sawSkillMd = false;
-            for (JsonNode file : node.path("files")) {
+            for (JsonCursor file : node.path("files").elements()) {
                 String p = file.asText();
                 if (p == null) continue;
                 String leaf = p.substring(p.lastIndexOf('/') + 1).toLowerCase(Locale.ROOT);
@@ -907,7 +910,7 @@ public class RealWorldSkillCorpusTest {
     public void emittedSkillsShDetailRoundTripsEveryMarketedField() {
         Fixture f = fixture();
         SkillCompatController controller = controller(f);
-        SkillsShApiNormalizer normalizer = new SkillsShApiNormalizer(f.mapper);
+        SkillsShApiNormalizer normalizer = new SkillsShApiNormalizer();
         SkillSource emitted = new SkillSource("zskill-emitted", SkillFormat.SKILLS_SH_API, EMITTED_API_URL, 40);
 
         for (SkillDto src : f.registry.listAll()) {
@@ -917,7 +920,7 @@ public class RealWorldSkillCorpusTest {
             List<SkillIssueDto> issues = new ArrayList<SkillIssueDto>();
             List<SkillDto> back = normalizer.normalize(
                     jsonRaw(SkillFormat.SKILLS_SH_API, EMITTED_API_URL + "/" + src.getSlug(), "detail.json",
-                            f.mapper.valueToTree(detail)), emitted, issues);
+                            tree(detail)), emitted, issues);
             assertEquals(1, back.size(), src.getId() + " 的详情响应回读出 " + back.size() + " 条: " + codeList(issues));
             SkillDto d = back.get(0);
             assertEquals(src.getSlug(), d.getSlug(), "slug 在 skills.sh 详情往返中变了");
@@ -968,9 +971,9 @@ public class RealWorldSkillCorpusTest {
 
         List<SkillIssueDto> issues = new ArrayList<SkillIssueDto>();
         SkillSource emitted = new SkillSource("zskill-emitted", SkillFormat.SKILLS_SH_API, EMITTED_API_URL, 40);
-        List<SkillDto> back = new SkillsShApiNormalizer(f.mapper).normalize(
+        List<SkillDto> back = new SkillsShApiNormalizer().normalize(
                 jsonRaw(SkillFormat.SKILLS_SH_API, EMITTED_API_URL + "/search", "search.json",
-                        f.mapper.valueToTree(search)), emitted, issues);
+                        tree(search)), emitted, issues);
         assertEquals(nodes.size(), back.size(), "search 响应里的条目被自家适配器丢了");
         Set<String> slugs = new LinkedHashSet<String>();
         for (SkillDto d : back) slugs.add(d.getSlug());

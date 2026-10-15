@@ -1,7 +1,6 @@
 package com.zifang.z.skill.core.normalize;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zifang.util.json.JsonUtil;
 import com.zifang.z.skill.api.dto.SkillDto;
 import com.zifang.z.skill.api.dto.SkillIssueDto;
 import com.zifang.z.skill.api.dto.SkillResourceDto;
@@ -33,8 +32,7 @@ public class RegistryIndexNormalizerTest {
     private static final String SOURCE_ID = "acme-registry";
     private static final String INDEX_URL = "https://acme.example/.well-known/agent-skills/index.json";
 
-    private final ObjectMapper mapper = new ObjectMapper();
-    private final RegistryIndexNormalizer normalizer = new RegistryIndexNormalizer(mapper);
+    private final RegistryIndexNormalizer normalizer = new RegistryIndexNormalizer();
     private final SkillSource source = new SkillSource(SOURCE_ID, SkillFormat.REGISTRY_INDEX, INDEX_URL, 10);
 
     // ---------- 收录共享索引里"真的带"的字段 ----------
@@ -234,7 +232,7 @@ public class RegistryIndexNormalizerTest {
     }
 
     private RawSkill jsonRaw(String literal) throws Exception {
-        JsonNode node = mapper.readTree(literal);
+        Object node = JsonUtil.parse(literal);
         return new RawSkill().format(SkillFormat.REGISTRY_INDEX).origin(INDEX_URL)
                 .entryRelative(".well-known/agent-skills/index.json").json(node).fallbackName("inline");
     }

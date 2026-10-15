@@ -69,7 +69,7 @@ public class SkillControllerTest {
     }
 
     private void rebuild() {
-        aggregator = new SkillAggregator(registry, mapper);
+        aggregator = new SkillAggregator(registry);
         aggregator.addSource(new SkillSource("mkt-local", SkillFormat.AGENT_SKILLS, marketplaceRoot(), 10));
         controller = new SkillController(registry, search, aggregator, reader);
     }

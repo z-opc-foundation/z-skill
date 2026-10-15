@@ -1,7 +1,6 @@
 package com.zifang.z.skill.core.normalize;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zifang.util.json.JsonUtil;
 import com.zifang.z.skill.api.dto.SkillDto;
 import com.zifang.z.skill.api.dto.SkillIssueDto;
 import com.zifang.z.skill.api.dto.SkillResourceDto;
@@ -31,8 +30,7 @@ public class SkillsShApiNormalizerTest {
     private static final String SOURCE_ID = "skills-sh";
     private static final String API_URL = "https://skills.sh/api/v1/skills";
 
-    private final ObjectMapper mapper = new ObjectMapper();
-    private final SkillsShApiNormalizer normalizer = new SkillsShApiNormalizer(mapper);
+    private final SkillsShApiNormalizer normalizer = new SkillsShApiNormalizer();
     private final SkillSource source = new SkillSource(SOURCE_ID, SkillFormat.SKILLS_SH_API, API_URL, 20);
 
     // ---------- 列表包络 ----------
@@ -242,7 +240,7 @@ public class SkillsShApiNormalizerTest {
     }
 
     private RawSkill jsonRaw(String literal) throws Exception {
-        JsonNode node = mapper.readTree(literal);
+        Object node = JsonUtil.parse(literal);
         return new RawSkill().format(SkillFormat.SKILLS_SH_API).origin(API_URL)
                 .entryRelative("https://skills.sh/api/v1/skills").json(node).fallbackName("inline");
     }

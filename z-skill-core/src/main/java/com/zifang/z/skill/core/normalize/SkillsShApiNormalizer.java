@@ -1,6 +1,5 @@
 package com.zifang.z.skill.core.normalize;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zifang.util.json.JsonCursor;
 import com.zifang.z.skill.api.dto.SkillDto;
 import com.zifang.z.skill.api.dto.SkillIssueDto;
@@ -27,12 +26,6 @@ public class SkillsShApiNormalizer implements SkillNormalizer {
     private static final List<String> RISK_ORDER = Arrays.asList("none", "safe", "low", "unknown", "unscanned",
             "medium", "high", "critical");
 
-    private final ObjectMapper mapper;
-
-    public SkillsShApiNormalizer(ObjectMapper mapper) {
-        this.mapper = mapper;
-    }
-
     @Override
     public SkillFormat format() {
         return SkillFormat.SKILLS_SH_API;
@@ -43,7 +36,7 @@ public class SkillsShApiNormalizer implements SkillNormalizer {
         List<SkillDto> out = new ArrayList<SkillDto>();
         JsonCursor root;
         try {
-            root = JsonSupport.readJson(raw, mapper);
+            root = JsonSupport.readJson(raw);
         } catch (Exception e) {
             issues.add(SkillIssueDto.error("api-unreadable", raw.getFallbackName(), source.getId(),
                     raw.getEntryRelative(), e.getMessage()));

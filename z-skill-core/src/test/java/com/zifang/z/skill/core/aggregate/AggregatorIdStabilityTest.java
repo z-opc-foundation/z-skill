@@ -1,6 +1,5 @@
 package com.zifang.z.skill.core.aggregate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zifang.z.skill.api.dto.AggregateReportDto;
 import com.zifang.z.skill.api.dto.SkillDto;
 import com.zifang.z.skill.api.spec.SkillFormat;
@@ -34,7 +33,7 @@ public class AggregatorIdStabilityTest {
     Path tmp;
 
     private SkillAggregator aggregator(SkillRegistry registry) {
-        return new SkillAggregator(registry, new ObjectMapper(), new SkillSecurityScanner());
+        return new SkillAggregator(registry, new SkillSecurityScanner());
     }
 
     private void writeSkill(String sourceDir, String skillDir, String name, String body) throws IOException {

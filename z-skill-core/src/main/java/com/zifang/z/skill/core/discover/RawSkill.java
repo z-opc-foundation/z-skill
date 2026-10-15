@@ -21,6 +21,7 @@ public final class RawSkill {
     private String text;
     /** 归一化前的原始载荷, 树结构(z-util JsonObject/JsonArray 或 plain Map/List). */
     private Object json;
+    private boolean jsonSet;
     private List<SkillResourceDto> resources = new ArrayList<SkillResourceDto>();
     private String fallbackName;
 
@@ -48,7 +49,17 @@ public final class RawSkill {
     public RawSkill text(String v) { this.text = v; return this; }
 
     public Object getJson() { return json; }
-    public RawSkill json(Object v) { this.json = v; return this; }
+    public RawSkill json(Object v) { this.json = v; this.jsonSet = true; return this; }
+
+    /**
+     * 载荷是不是被显式塞过 —— 不能拿 getJson() 是否为 null 代替。
+     *
+     * <p>JSON 字面量 {@code null} 解析出来就是 Java null，和"压根没给载荷"长得一模一样，
+     * 但两者在归一化侧要记不同的账：前者是 {@code index-empty}(上游回了空内容)，
+     * 后者是 {@code index-unreadable}(源本身读不出来)。Jackson 时代靠 readTree("null")
+     * 返回非空的 NullNode 把两者天然分开，换成自研解析器后这个区分就丢了。</p>
+     */
+    public boolean hasJson() { return jsonSet; }
 
     public List<SkillResourceDto> getResources() { return resources; }
     public RawSkill resources(List<SkillResourceDto> v) { this.resources = v == null ? new ArrayList<SkillResourceDto>() : v; return this; }

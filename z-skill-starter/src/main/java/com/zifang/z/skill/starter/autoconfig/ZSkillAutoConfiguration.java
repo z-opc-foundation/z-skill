@@ -1,6 +1,5 @@
 package com.zifang.z.skill.starter.autoconfig;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zifang.z.skill.api.spec.SkillFormat;
 import com.zifang.z.skill.core.aggregate.SkillAggregator;
 import com.zifang.z.skill.core.content.SkillContentReader;
@@ -12,7 +11,6 @@ import com.zifang.z.skill.core.scan.SkillSecurityScanner;
 import com.zifang.z.skill.core.search.SkillSearchEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -67,10 +65,8 @@ public class ZSkillAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public SkillAggregator skillAggregator(SkillRegistry registry, SkillProperties props,
-                                           SkillSecurityScanner scanner,
-                                           ObjectProvider<ObjectMapper> mapperProvider) {
-        ObjectMapper mapper = mapperProvider.getIfAvailable(ObjectMapper::new);
-        SkillAggregator aggregator = new SkillAggregator(registry, mapper, scanner);
+                                           SkillSecurityScanner scanner) {
+        SkillAggregator aggregator = new SkillAggregator(registry, scanner);
         int priority = 10;
         for (SkillProperties.Source declared : props.getSources()) {
             SkillSource source = toSource(declared, props, priority);

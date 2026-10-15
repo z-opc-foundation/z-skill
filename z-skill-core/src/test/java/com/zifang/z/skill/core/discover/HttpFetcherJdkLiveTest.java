@@ -1,6 +1,5 @@
 package com.zifang.z.skill.core.discover;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import com.zifang.z.skill.api.dto.AggregateReportDto;
@@ -184,7 +183,7 @@ public class HttpFetcherJdkLiveTest {
     @Test
     public void aggregatorIngestsRemoteRegistryWithItsDefaultFetcher() {
         SkillRegistry registry = new SkillRegistry();
-        SkillAggregator aggregator = new SkillAggregator(registry, new ObjectMapper());
+        SkillAggregator aggregator = new SkillAggregator(registry);
         // 关键: 一次 setHttpFetcher 都不调, 走的就是主代码里那句 new HttpFetcher.Jdk()
         aggregator.addSource(new SkillSource("acme-registry", SkillFormat.REGISTRY_INDEX,
                 base + "/index.json", 10));
@@ -205,7 +204,7 @@ public class HttpFetcherJdkLiveTest {
     @Test
     public void oneDeadRemoteSourceCannotTakeDownTheGoodOne() {
         SkillRegistry registry = new SkillRegistry();
-        SkillAggregator aggregator = new SkillAggregator(registry, new ObjectMapper());
+        SkillAggregator aggregator = new SkillAggregator(registry);
         aggregator.addSource(new SkillSource("dead", SkillFormat.REGISTRY_INDEX, base + "/boom", 10));
         aggregator.addSource(new SkillSource("alive", SkillFormat.SKILLS_SH_API, base + "/sh.json", 20));
 
@@ -222,7 +221,7 @@ public class HttpFetcherJdkLiveTest {
     @Test
     public void remotePayloadThatIsNotJsonIsChalkedUpNotThrown() {
         SkillRegistry registry = new SkillRegistry();
-        SkillAggregator aggregator = new SkillAggregator(registry, new ObjectMapper());
+        SkillAggregator aggregator = new SkillAggregator(registry);
         // 第三方端点最常见的"200 但给的是 HTML 登录页"
         aggregator.addSource(new SkillSource("loginwall", SkillFormat.REGISTRY_INDEX,
                 base + "/not-json", 10));
@@ -237,7 +236,7 @@ public class HttpFetcherJdkLiveTest {
     @Test
     public void remoteChineseDescriptionSurvivesTheWholePipeline() {
         SkillRegistry registry = new SkillRegistry();
-        SkillAggregator aggregator = new SkillAggregator(registry, new ObjectMapper());
+        SkillAggregator aggregator = new SkillAggregator(registry);
         aggregator.addSource(new SkillSource("cjk", SkillFormat.REGISTRY_INDEX, base + "/no-charset", 10));
         aggregator.refresh();
 

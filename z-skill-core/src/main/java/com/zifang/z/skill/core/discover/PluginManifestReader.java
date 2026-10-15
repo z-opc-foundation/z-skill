@@ -1,6 +1,5 @@
 package com.zifang.z.skill.core.discover;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zifang.util.json.JsonCursor;
 import com.zifang.util.json.JsonUtil;
 import com.zifang.z.skill.api.spec.SkillFormat;
@@ -27,12 +26,6 @@ import java.util.Optional;
  * <p>只信任清单里写明的 installPath, 不猜路径、不拼 URL.
  */
 public class PluginManifestReader {
-
-    private final ObjectMapper mapper;
-
-    public PluginManifestReader(ObjectMapper mapper) {
-        this.mapper = mapper;
-    }
 
     /**
      * 从一个清单文件派生出可继续扫描的目录来源.

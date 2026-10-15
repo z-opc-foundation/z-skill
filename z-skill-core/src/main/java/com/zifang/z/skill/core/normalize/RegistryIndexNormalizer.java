@@ -1,6 +1,5 @@
 package com.zifang.z.skill.core.normalize;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zifang.util.json.JsonCursor;
 import com.zifang.z.skill.api.dto.SkillDto;
 import com.zifang.z.skill.api.dto.SkillIssueDto;
@@ -23,12 +22,6 @@ import java.util.Map;
  */
 public class RegistryIndexNormalizer implements SkillNormalizer {
 
-    private final ObjectMapper mapper;
-
-    public RegistryIndexNormalizer(ObjectMapper mapper) {
-        this.mapper = mapper;
-    }
-
     @Override
     public SkillFormat format() {
         return SkillFormat.REGISTRY_INDEX;
@@ -39,7 +32,7 @@ public class RegistryIndexNormalizer implements SkillNormalizer {
         List<SkillDto> out = new ArrayList<SkillDto>();
         JsonCursor root;
         try {
-            root = JsonSupport.readJson(raw, mapper);
+            root = JsonSupport.readJson(raw);
         } catch (Exception e) {
             issues.add(SkillIssueDto.error("index-unreadable", raw.getFallbackName(), source.getId(),
                     raw.getEntryRelative(), e.getMessage()));

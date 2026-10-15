@@ -1,6 +1,5 @@
 package com.zifang.z.skill.admin.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zifang.z.skill.api.dto.AggregateReportDto;
 import com.zifang.z.skill.api.dto.SkillDto;
 import com.zifang.z.skill.api.dto.SkillIssueDto;
@@ -61,7 +60,7 @@ class AdminQueryServiceReconciliationTest {
         registry = new SkillRegistry();
         search = new SkillSearchEngine(registry);
         service = new AdminQueryService(registry, search);
-        aggregator = new SkillAggregator(registry, new ObjectMapper(), new SkillSecurityScanner());
+        aggregator = new SkillAggregator(registry, new SkillSecurityScanner());
         alphaDir = Files.createDirectories(tmp.resolve("alpha"));
         betaDir = Files.createDirectories(tmp.resolve("beta"));
         writeSkill(alphaDir, "deploy-helper", "Deploy helper", "把服务部署到测试环境的助手");

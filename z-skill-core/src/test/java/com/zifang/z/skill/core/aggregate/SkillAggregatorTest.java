@@ -1,6 +1,5 @@
 package com.zifang.z.skill.core.aggregate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zifang.z.skill.api.dto.AggregateReportDto;
 import com.zifang.z.skill.api.dto.SkillDto;
 import com.zifang.z.skill.api.dto.SkillIssueDto;
@@ -120,7 +119,7 @@ public class SkillAggregatorTest {
         writeSkill(tmp, "code-review", "code-review", "Review a diff and report defects.", "Be terse.");
 
         SkillRegistry registry = new SkillRegistry();
-        SkillAggregator aggregator = new SkillAggregator(registry, new ObjectMapper());
+        SkillAggregator aggregator = new SkillAggregator(registry);
         aggregator.addSource(local("alpha", SkillFormat.AGENT_SKILLS, tmp, 10));
 
         AggregateReportDto report = aggregator.refresh();
@@ -161,7 +160,7 @@ public class SkillAggregatorTest {
         writeSkill(b, "pdf-processing", "pdf-processing", "Beta flavour of the pdf skill.", "beta body");
 
         SkillRegistry registry = new SkillRegistry();
-        SkillAggregator aggregator = new SkillAggregator(registry, new ObjectMapper());
+        SkillAggregator aggregator = new SkillAggregator(registry);
         aggregator.addSource(local("alpha", SkillFormat.AGENT_SKILLS, a, 10));
         aggregator.addSource(local("beta", SkillFormat.AGENT_SKILLS, b, 20));
 
@@ -196,7 +195,7 @@ public class SkillAggregatorTest {
         writeSkill(b, "pdf-processing", "pdf-processing", "Shared content across two platform dirs.", "same body");
 
         SkillRegistry registry = new SkillRegistry();
-        SkillAggregator aggregator = new SkillAggregator(registry, new ObjectMapper());
+        SkillAggregator aggregator = new SkillAggregator(registry);
         aggregator.addSource(local("claude", SkillFormat.AGENT_SKILLS, a, 10));
         aggregator.addSource(local("agents", SkillFormat.AGENT_SKILLS, b, 20));
 
@@ -229,7 +228,7 @@ public class SkillAggregatorTest {
         StubFetcher fetcher = new StubFetcher().ok(url, payload);
 
         SkillRegistry registry = new SkillRegistry();
-        SkillAggregator aggregator = new SkillAggregator(registry, new ObjectMapper());
+        SkillAggregator aggregator = new SkillAggregator(registry);
         aggregator.setHttpFetcher(fetcher);
         aggregator.addSource(new SkillSource("registry-api", SkillFormat.SKILLS_SH_API, url, 30));
 
@@ -255,7 +254,7 @@ public class SkillAggregatorTest {
         writeSkill(slow, "pdf-processing", "pdf-processing", "Third party flavour from the slow source.", "slow body");
 
         SkillRegistry registry = new SkillRegistry();
-        SkillAggregator aggregator = new SkillAggregator(registry, new ObjectMapper());
+        SkillAggregator aggregator = new SkillAggregator(registry);
         // 故意先声明低优先级来源, 证明归属看 priority 而不是声明顺序
         aggregator.addSource(local("slow", SkillFormat.AGENT_SKILLS, slow, 90));
         aggregator.addSource(local("fast", SkillFormat.AGENT_SKILLS, fast, 10));
@@ -290,7 +289,7 @@ public class SkillAggregatorTest {
                 + "{\"slug\":\"api-alpha\",\"description\":\"Alpha from the registry\",\"installs\":4,\"source\":\"acme\"}]}");
 
         SkillRegistry registry = new SkillRegistry();
-        SkillAggregator aggregator = new SkillAggregator(registry, new ObjectMapper());
+        SkillAggregator aggregator = new SkillAggregator(registry);
         aggregator.setHttpFetcher(fetcher);
         aggregator.addSource(local("srcA", SkillFormat.AGENT_SKILLS, a, 10));
         aggregator.addSource(local("srcB", SkillFormat.AGENT_SKILLS, b, 20));
@@ -366,7 +365,7 @@ public class SkillAggregatorTest {
         StubFetcher fetcher = new StubFetcher().fail(dead).ok(garbage, "<html><body>502 Bad Gateway</body></html>");
 
         SkillRegistry registry = new SkillRegistry();
-        SkillAggregator aggregator = new SkillAggregator(registry, new ObjectMapper());
+        SkillAggregator aggregator = new SkillAggregator(registry);
         aggregator.setHttpFetcher(fetcher);
         aggregator.addSource(new SkillSource("dead-api", SkillFormat.SKILLS_SH_API, dead, 5));
         aggregator.addSource(local("alpha", SkillFormat.AGENT_SKILLS, tmp, 10));
@@ -397,7 +396,7 @@ public class SkillAggregatorTest {
     public void missingLocalDirectory_isRecordedAndIsolated() throws Exception {
         writeSkill(tmp, "pdf-processing", "pdf-processing", "Extract text from PDF files.", "body");
         SkillRegistry registry = new SkillRegistry();
-        SkillAggregator aggregator = new SkillAggregator(registry, new ObjectMapper());
+        SkillAggregator aggregator = new SkillAggregator(registry);
         aggregator.addSource(local("ghost", SkillFormat.AGENT_SKILLS, tmp.resolve("nope"), 5));
         aggregator.addSource(local("alpha", SkillFormat.AGENT_SKILLS, tmp, 10));
 
@@ -416,7 +415,7 @@ public class SkillAggregatorTest {
         writeSkill(tmp, "beta-skill", "beta-skill", "Second description.", "body");
 
         SkillRegistry registry = new SkillRegistry();
-        SkillAggregator aggregator = new SkillAggregator(registry, new ObjectMapper());
+        SkillAggregator aggregator = new SkillAggregator(registry);
         aggregator.addSource(local("alpha", SkillFormat.AGENT_SKILLS, tmp, 10));
 
         aggregator.refresh();
@@ -454,7 +453,7 @@ public class SkillAggregatorTest {
         }
 
         SkillRegistry registry = new SkillRegistry();
-        SkillAggregator aggregator = new SkillAggregator(registry, new ObjectMapper());
+        SkillAggregator aggregator = new SkillAggregator(registry);
         aggregator.addSource(local("bulk", SkillFormat.FLAT_MARKDOWN, tmp, 10));
 
         AggregateReportDto report = aggregator.refresh();
@@ -475,7 +474,7 @@ public class SkillAggregatorTest {
                 "Eight levels below the source root.", "body");
 
         SkillRegistry oneLevel = new SkillRegistry();
-        SkillAggregator a1 = new SkillAggregator(oneLevel, new ObjectMapper());
+        SkillAggregator a1 = new SkillAggregator(oneLevel);
         a1.addSource(local("depth1", SkillFormat.AGENT_SKILLS, root, 10).maxDepth(1));
         AggregateReportDto shallow = a1.refresh();
         assertEquals(Collections.singletonList("skill-shallow"), ids(oneLevel.listAll()),
@@ -484,13 +483,13 @@ public class SkillAggregatorTest {
         assertEquals(0, shallow.getIssueCount());
 
         SkillRegistry threeLevels = new SkillRegistry();
-        SkillAggregator a3 = new SkillAggregator(threeLevels, new ObjectMapper());
+        SkillAggregator a3 = new SkillAggregator(threeLevels);
         a3.addSource(local("depth3", SkillFormat.AGENT_SKILLS, root, 10).maxDepth(3));
         a3.refresh();
         assertEquals(Arrays.asList("skill-mid", "skill-shallow"), ids(threeLevels.listAll()));
 
         SkillRegistry byDefault = new SkillRegistry();
-        SkillAggregator aDefault = new SkillAggregator(byDefault, new ObjectMapper());
+        SkillAggregator aDefault = new SkillAggregator(byDefault);
         aDefault.addSource(local("auto", SkillFormat.AGENT_SKILLS, root, 10));
         AggregateReportDto defaultReport = aDefault.refresh();
         assertEquals(Arrays.asList("skill-mid", "skill-shallow"), ids(byDefault.listAll()),
@@ -509,7 +508,7 @@ public class SkillAggregatorTest {
         writeSkill(b, "beta-skill", "beta-skill", "From the disabled source.", "body");
 
         SkillRegistry registry = new SkillRegistry();
-        SkillAggregator aggregator = new SkillAggregator(registry, new ObjectMapper());
+        SkillAggregator aggregator = new SkillAggregator(registry);
         aggregator.addSource(local("on", SkillFormat.AGENT_SKILLS, a, 10));
         aggregator.addSource(local("off", SkillFormat.AGENT_SKILLS, b, 20).enabled(false));
 
@@ -538,7 +537,7 @@ public class SkillAggregatorTest {
                 + "\"source\":\"acme\"}]}");
 
         SkillRegistry registry = new SkillRegistry();
-        SkillAggregator aggregator = new SkillAggregator(registry, new ObjectMapper());
+        SkillAggregator aggregator = new SkillAggregator(registry);
         aggregator.setHttpFetcher(fetcher);
         aggregator.addSource(new SkillSource("api", SkillFormat.SKILLS_SH_API, url, 30));
         AggregateReportDto report = aggregator.refresh();
@@ -552,7 +551,7 @@ public class SkillAggregatorTest {
     public void withoutAScanner_riskLevelStaysUnscanned() throws Exception {
         writeSkill(tmp, "pdf-processing", "pdf-processing", "Extract text from PDF files.", "body");
         SkillRegistry registry = new SkillRegistry();
-        SkillAggregator aggregator = new SkillAggregator(registry, new ObjectMapper(), null);
+        SkillAggregator aggregator = new SkillAggregator(registry, null);
         aggregator.addSource(local("alpha", SkillFormat.AGENT_SKILLS, tmp, 10));
         aggregator.refresh();
 
@@ -580,7 +579,7 @@ public class SkillAggregatorTest {
         Files.createDirectories(c);
 
         SkillRegistry registry = new SkillRegistry();
-        SkillAggregator aggregator = new SkillAggregator(registry, new ObjectMapper());
+        SkillAggregator aggregator = new SkillAggregator(registry);
         aggregator.addSource(local("discovered", SkillFormat.UNKNOWN, a, 10));
         aggregator.addSource(local("declared", SkillFormat.AGENT_SKILLS, b, 20));
         aggregator.addSource(local("empty", SkillFormat.UNKNOWN, c, 30));
