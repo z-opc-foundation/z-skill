@@ -1,6 +1,7 @@
 package com.zifang.z.skill.core.aggregate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zifang.util.json.JsonUtil;
 import com.zifang.z.skill.api.dto.AggregateReportDto;
 import com.zifang.z.skill.api.dto.SkillDto;
 import com.zifang.z.skill.api.dto.SkillIssueDto;
@@ -245,7 +246,7 @@ public class SkillAggregator {
         RawSkill raw = new RawSkill().format(format).origin(source.getUrl())
                 .entryRelative(source.getUrl()).fallbackName(source.getId()).text(body);
         try {
-            raw.json(mapper.readTree(body));
+            raw.json(JsonUtil.parse(body));
         } catch (Exception e) {
             issues.add(SkillIssueDto.error("payload-not-json", source.getId(), source.getId(), source.getUrl(),
                     String.valueOf(e.getMessage())));

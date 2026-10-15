@@ -1,7 +1,7 @@
 package com.zifang.z.skill.core.normalize;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zifang.util.json.JsonCursor;
 import com.zifang.z.skill.api.dto.SkillDto;
 import com.zifang.z.skill.api.dto.SkillIssueDto;
 import com.zifang.z.skill.api.dto.SkillResourceDto;
@@ -41,7 +41,7 @@ public class SkillsShApiNormalizer implements SkillNormalizer {
     @Override
     public List<SkillDto> normalize(RawSkill raw, SkillSource source, List<SkillIssueDto> issues) {
         List<SkillDto> out = new ArrayList<SkillDto>();
-        JsonNode root;
+        JsonCursor root;
         try {
             root = JsonSupport.readJson(raw, mapper);
         } catch (Exception e) {
@@ -49,7 +49,7 @@ public class SkillsShApiNormalizer implements SkillNormalizer {
                     raw.getEntryRelative(), e.getMessage()));
             return out;
         }
-        JsonNode arr = JsonSupport.skillArray(root);
+        JsonCursor arr = JsonSupport.skillArray(root);
         if (arr == null) {
             if (root != null && root.has("slug")) {
                 SkillDto one = toSkill(root, source, raw, issues);
@@ -69,14 +69,14 @@ public class SkillsShApiNormalizer implements SkillNormalizer {
                     raw.getEntryRelative(), "响应里既没有 data[] 也没有 skills[]"));
             return out;
         }
-        for (JsonNode node : arr) {
+        for (JsonCursor node : arr.elements()) {
             SkillDto dto = toSkill(node, source, raw, issues);
             if (dto != null) out.add(dto);
         }
         return out;
     }
 
-    private SkillDto toSkill(JsonNode node, SkillSource source, RawSkill raw, List<SkillIssueDto> issues) {
+    private SkillDto toSkill(JsonCursor node, SkillSource source, RawSkill raw, List<SkillIssueDto> issues) {
         String slugRaw = JsonSupport.text(node, "slug", "name", "skillId", "id");
         String id = JsonSupport.text(node, "id");
         String sourceRepo = JsonSupport.text(node, "source", "repo", "owner");
@@ -96,9 +96,9 @@ public class SkillsShApiNormalizer implements SkillNormalizer {
             description = "";
         }
         List<SkillResourceDto> resources = new ArrayList<SkillResourceDto>();
-        JsonNode files = node.get("files");
-        if (files != null && files.isArray()) {
-            for (JsonNode f : files) {
+        JsonCursor files = node.path("files");
+        if (files.isArray()) {
+            for (JsonCursor f : files.elements()) {
                 String path = JsonSupport.text(f, "path", "file", "name");
                 if (path == null || !SkillFiles.isSafeRelativePath(path)) {
                     // 条目仍然可用(files 只是附件清单), 所以剔一个越界路径是 warning;
@@ -138,13 +138,13 @@ public class SkillsShApiNormalizer implements SkillNormalizer {
                 .build();
     }
 
-    private static List<String> tagsOf(JsonNode node) {
+    private static List<String> tagsOf(JsonCursor node) {
         List<String> out = new ArrayList<String>();
-        JsonNode t = node.get("tags");
-        if (t == null) t = node.get("topics");
-        if (t == null || t.isNull()) return out;
+        JsonCursor t = node.path("tags");
+        if (t.isMissing()) t = node.path("topics");
+        if (t.isMissing() || t.isNull()) return out;
         if (t.isArray()) {
-            for (JsonNode n : t) {
+            for (JsonCursor n : t.elements()) {
                 String s = n.asText();
                 if (s != null && !s.trim().isEmpty()) out.add(s.trim());
             }
@@ -157,11 +157,11 @@ public class SkillsShApiNormalizer implements SkillNormalizer {
     }
 
     /** 多家安全审计取最差的一档. */
-    private static String riskOf(JsonNode node) {
+    private static String riskOf(JsonCursor node) {
         String worst = knownRisk(JsonSupport.text(node, "riskLevel", "risk"));
-        JsonNode audits = node.get("audits");
-        if (audits != null && audits.isArray()) {
-            for (JsonNode a : audits) {
+        JsonCursor audits = node.path("audits");
+        if (audits.isArray()) {
+            for (JsonCursor a : audits.elements()) {
                 worst = worse(worst, knownRisk(JsonSupport.text(a, "riskLevel", "risk")));
             }
         }

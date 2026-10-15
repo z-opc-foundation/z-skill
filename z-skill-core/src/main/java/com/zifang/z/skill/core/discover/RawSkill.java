@@ -1,6 +1,5 @@
 package com.zifang.z.skill.core.discover;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.zifang.z.skill.api.dto.SkillResourceDto;
 import com.zifang.z.skill.api.spec.SkillFormat;
 
@@ -20,7 +19,8 @@ public final class RawSkill {
     private String entryRelative;
     private String dirName;
     private String text;
-    private JsonNode json;
+    /** 归一化前的原始载荷, 树结构(z-util JsonObject/JsonArray 或 plain Map/List). */
+    private Object json;
     private List<SkillResourceDto> resources = new ArrayList<SkillResourceDto>();
     private String fallbackName;
 
@@ -47,8 +47,8 @@ public final class RawSkill {
     public void setText(String v) { this.text = v; }
     public RawSkill text(String v) { this.text = v; return this; }
 
-    public JsonNode getJson() { return json; }
-    public RawSkill json(JsonNode v) { this.json = v; return this; }
+    public Object getJson() { return json; }
+    public RawSkill json(Object v) { this.json = v; return this; }
 
     public List<SkillResourceDto> getResources() { return resources; }
     public RawSkill resources(List<SkillResourceDto> v) { this.resources = v == null ? new ArrayList<SkillResourceDto>() : v; return this; }

@@ -1,7 +1,7 @@
 package com.zifang.z.skill.core.normalize;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zifang.util.json.JsonCursor;
 import com.zifang.z.skill.api.dto.SkillDto;
 import com.zifang.z.skill.api.dto.SkillIssueDto;
 import com.zifang.z.skill.api.dto.SkillResourceDto;
@@ -12,7 +12,6 @@ import com.zifang.z.skill.core.discover.SkillSource;
 import com.zifang.z.skill.core.spec.SkillFiles;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -38,7 +37,7 @@ public class RegistryIndexNormalizer implements SkillNormalizer {
     @Override
     public List<SkillDto> normalize(RawSkill raw, SkillSource source, List<SkillIssueDto> issues) {
         List<SkillDto> out = new ArrayList<SkillDto>();
-        JsonNode root;
+        JsonCursor root;
         try {
             root = JsonSupport.readJson(raw, mapper);
         } catch (Exception e) {
@@ -46,7 +45,7 @@ public class RegistryIndexNormalizer implements SkillNormalizer {
                     raw.getEntryRelative(), e.getMessage()));
             return out;
         }
-        JsonNode arr = JsonSupport.skillArray(root);
+        JsonCursor arr = JsonSupport.skillArray(root);
         if (arr == null) {
             // 这份"索引"根本没有 skills 数组 → 这个候选一条都没交出来 = 被丢弃, 才是 error 档
             issues.add(SkillIssueDto.error("index-empty", raw.getFallbackName(), source.getId(),
@@ -55,7 +54,7 @@ public class RegistryIndexNormalizer implements SkillNormalizer {
         }
         if (arr.size() == 0) return out; // 空目录是合法响应, 不记账(与 skills.sh 的 data:[] 同口径)
         String base = raw.getOrigin();
-        for (JsonNode node : arr) {
+        for (JsonCursor node : arr.elements()) {
             String name = JsonSupport.text(node, "name", "slug", "id");
             String slug = SkillSpec.slugify(name);
             if (slug == null) {
@@ -76,11 +75,11 @@ public class RegistryIndexNormalizer implements SkillNormalizer {
             }
             List<SkillResourceDto> resources = new ArrayList<SkillResourceDto>();
             String skillMdPath = null;
-            JsonNode files = node.get("files");
+            JsonCursor files = node.path("files");
             int rejectedPaths = 0;
-            if (files != null && files.isArray()) {
-                for (JsonNode f : files) {
-                    String path = f.isTextual() ? f.asText() : JsonSupport.text(f, "path", "file");
+            if (files.isArray()) {
+                for (JsonCursor f : files.elements()) {
+                    String path = f.isScalar() ? f.asText() : JsonSupport.text(f, "path", "file");
                     if (path == null) continue;
                     if (!SkillFiles.isSafeRelativePath(path)) {
                         // 条目本身还在(别的文件仍然可用), 所以剔单个越界路径记 warning; 全剔光才 error+丢弃
@@ -104,12 +103,11 @@ public class RegistryIndexNormalizer implements SkillNormalizer {
                 issues.add(SkillIssueDto.warning("index-missing-skill-md", slug, source.getId(),
                         raw.getEntryRelative(), "files 中没有 skill.md, 只能作为目录条目收录"));
             }
-            JsonNode meta = node.get("metadata");
+            JsonCursor meta = node.path("metadata");
             Map<String, String> metadata = new java.util.LinkedHashMap<String, String>();
-            if (meta != null && meta.isObject()) {
-                for (Iterator<String> it = meta.fieldNames(); it.hasNext(); ) {
-                    String k = it.next();
-                    metadata.put(k, meta.get(k).asText());
+            if (meta.isObject()) {
+                for (String k : meta.fieldNames()) {
+                    metadata.put(k, meta.path(k).asText());
                 }
             }
             String version = JsonSupport.text(node, "version");
@@ -121,8 +119,7 @@ public class RegistryIndexNormalizer implements SkillNormalizer {
                     .version(version)
                     .license(JsonSupport.text(node, "license"))
                     .category(firstNonNull(JsonSupport.text(node, "category"), source.getCategoryHint(), "registry"))
-                    .tags(JsonSupport.text(node, "tags") == null
-                            ? splitList(node.get("tags")) : splitList(node.get("tags")))
+                    .tags(splitList(node.path("tags")))
                     .author(JsonSupport.text(node, "author"))
                     .owner(JsonSupport.text(node, "owner", "namespace"))
                     .source(source.getId())
@@ -145,11 +142,11 @@ public class RegistryIndexNormalizer implements SkillNormalizer {
         return out;
     }
 
-    private static List<String> splitList(JsonNode node) {
+    private static List<String> splitList(JsonCursor node) {
         List<String> out = new ArrayList<String>();
-        if (node == null || node.isNull()) return out;
+        if (node == null || node.isMissing() || node.isNull()) return out;
         if (node.isArray()) {
-            for (JsonNode n : node) {
+            for (JsonCursor n : node.elements()) {
                 String s = n.asText();
                 if (s != null && !s.trim().isEmpty()) out.add(s.trim());
             }
@@ -161,10 +158,9 @@ public class RegistryIndexNormalizer implements SkillNormalizer {
         return out;
     }
 
-    private static long sizeOf(JsonNode file) {
-        if (file != null && file.isObject()) {
-            JsonNode size = file.get("size");
-            if (size != null && size.isNumber()) return size.asLong();
+    private static long sizeOf(JsonCursor file) {
+        if (file.isObject()) {
+            return file.path("size").asLong(0L);
         }
         return 0L;
     }

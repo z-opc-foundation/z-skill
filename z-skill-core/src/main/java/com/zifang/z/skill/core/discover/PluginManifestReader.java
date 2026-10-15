@@ -1,7 +1,8 @@
 package com.zifang.z.skill.core.discover;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zifang.util.json.JsonCursor;
+import com.zifang.util.json.JsonUtil;
 import com.zifang.z.skill.api.spec.SkillFormat;
 import com.zifang.z.skill.core.normalize.JsonSupport;
 
@@ -10,7 +11,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,20 +42,21 @@ public class PluginManifestReader {
      */
     public List<SkillSource> derive(Path manifest, SkillSource parent) {
         List<SkillSource> out = new ArrayList<SkillSource>();
-        JsonNode root;
+        JsonCursor root;
         try {
-            root = mapper.readTree(new String(Files.readAllBytes(manifest), StandardCharsets.UTF_8));
+            root = JsonCursor.of(JsonUtil.parse(new String(Files.readAllBytes(manifest), StandardCharsets.UTF_8)));
         } catch (IOException e) {
+            return out;
+        } catch (RuntimeException e) {
             return out;
         }
         String fileName = manifest.getFileName().toString();
         if ("installed_plugins_v2.json".equals(fileName)) {
-            JsonNode plugins = root.get("plugins");
-            if (plugins == null || !plugins.isObject()) return out;
-            for (Iterator<String> it = plugins.fieldNames(); it.hasNext(); ) {
-                String key = it.next();
-                JsonNode entries = plugins.get(key);
-                JsonNode newest = entries != null && entries.isArray() && entries.size() > 0 ? entries.get(0) : null;
+            JsonCursor plugins = root.path("plugins");
+            if (!plugins.isObject()) return out;
+            for (String key : plugins.fieldNames()) {
+                JsonCursor entries = plugins.path(key);
+                JsonCursor newest = entries.isArray() && entries.size() > 0 ? entries.at(0) : null;
                 String installPath = JsonSupport.text(newest, "installPath");
                 if (installPath == null) continue;
                 String pluginId = key.contains("@") ? key.substring(0, key.indexOf('@')) : key;
@@ -65,10 +66,10 @@ public class PluginManifestReader {
             return out;
         }
         if ("marketplace.json".equals(fileName)) {
-            JsonNode entries = root.get("plugins");
+            JsonCursor entries = root.path("plugins");
             String marketplace = JsonSupport.text(root, "name");
-            if (entries != null && entries.isArray()) {
-                for (JsonNode node : entries) {
+            if (entries.isArray()) {
+                for (JsonCursor node : entries.elements()) {
                     String pluginName = JsonSupport.text(node, "name", "id");
                     String src = JsonSupport.text(node, "source", "path", "localPath");
                     if (pluginName == null || src == null) continue;
@@ -138,10 +139,12 @@ public class PluginManifestReader {
 
     private Optional<String> readPluginId(Path manifest) {
         try {
-            JsonNode root = mapper.readTree(new String(Files.readAllBytes(manifest), StandardCharsets.UTF_8));
+            JsonCursor root = JsonCursor.of(JsonUtil.parse(new String(Files.readAllBytes(manifest), StandardCharsets.UTF_8)));
             String id = JsonSupport.text(root, "name", "id");
             return Optional.ofNullable(id);
         } catch (IOException e) {
+            return Optional.empty();
+        } catch (RuntimeException e) {
             return Optional.empty();
         }
     }
