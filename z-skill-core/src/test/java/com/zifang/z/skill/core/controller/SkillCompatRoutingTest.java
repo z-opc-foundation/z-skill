@@ -1,6 +1,6 @@
 package com.zifang.z.skill.core.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zifang.util.json.JsonUtil;
 import com.zifang.z.skill.api.dto.SkillDto;
 import com.zifang.z.skill.core.content.SkillContentReader;
 import com.zifang.z.skill.core.registry.SkillRegistry;
@@ -33,8 +33,6 @@ public class SkillCompatRoutingTest {
 
     private static final String DETAIL = "/skill/compat/skills-sh/api/v1/skills";
 
-    private final ObjectMapper mapper = new ObjectMapper();
-
     private SkillRegistry registry() {
         SkillRegistry registry = new SkillRegistry();
         registry.register(SkillDto.builder()
@@ -61,8 +59,21 @@ public class SkillCompatRoutingTest {
         return builder.build();
     }
 
+    /** {@code getContentAsString(Charset)} 在 spring-test 5.3.39 上仍声明受检异常, 故保留 throws. */
     private Map<String, Object> body(MvcResult result) throws Exception {
-        return mapper.readValue(result.getResponse().getContentAsString(StandardCharsets.UTF_8), Map.class);
+        return plainMap(result.getResponse().getContentAsString(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * 把响应体读成 plain 的有序 Map. 不能用 {@code JsonUtil.fromJson(json, Map.class)}
+     * (抛 deserializePojo failed), 也不能用 TypeReference 版本(嵌套值是 JsonObject/JsonArray,
+     * 运行期 ClassCastException); 不用 {@code parseToMap} 是因为它解析失败静默返回空 Map,
+     * 路由测试会变成永远绿.
+     */
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> plainMap(String json) {
+        Object node = JsonUtil.toPlainValue(JsonUtil.parse(json));
+        return node instanceof Map ? (Map<String, Object>) node : null;
     }
 
     /** 两种匹配器都要能接住 3 段 id: 详情和审计各自的前缀都要切对. */

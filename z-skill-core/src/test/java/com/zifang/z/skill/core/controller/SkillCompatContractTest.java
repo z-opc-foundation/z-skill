@@ -1,6 +1,6 @@
 package com.zifang.z.skill.core.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zifang.util.json.JsonUtil;
 import com.zifang.z.skill.api.dto.SkillDto;
 import com.zifang.z.skill.api.dto.SkillResourceDto;
 import com.zifang.z.skill.api.spec.SkillFormat;
@@ -45,7 +45,6 @@ public class SkillCompatContractTest {
 
     private static final long DISCOVERED_AT = 1_760_000_000_000L;
 
-    private final ObjectMapper mapper = new ObjectMapper();
     private MockMvc mvc;
     private SkillRegistry registry;
 
@@ -88,8 +87,29 @@ public class SkillCompatContractTest {
         return read(result);
     }
 
+    /** {@code getContentAsString(Charset)} 在 spring-test 5.3.39 上仍声明受检异常, 故保留 throws. */
     private Map<String, Object> read(MvcResult result) throws Exception {
-        return mapper.readValue(result.getResponse().getContentAsString(StandardCharsets.UTF_8), Map.class);
+        return plainMap(result.getResponse().getContentAsString(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * 契约测试用: 把响应体读成 plain 的有序 Map(嵌套层同样是 Map/List).
+     *
+     * <p>不能用 {@code JsonUtil.fromJson(json, Map.class)}(会抛 deserializePojo failed),
+     * 也不能用 {@code fromJson(json, TypeReference<Map<String,Object>>)}(嵌套值是 JsonObject/JsonArray,
+     * 机械替换会在运行期 ClassCastException); 更不能用 {@code parseToMap}(解析失败静默返回空 Map,
+     * 那会让契约测试空转成永远绿)。
+     */
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> plainMap(String json) {
+        Object node = JsonUtil.toPlainValue(JsonUtil.parse(json));
+        return node instanceof Map ? (Map<String, Object>) node : null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Map<String, Object>> plainList(String json) {
+        Object node = JsonUtil.toPlainValue(JsonUtil.parse(json));
+        return node instanceof List ? (List<Map<String, Object>>) node : null;
     }
 
     @Test
@@ -219,8 +239,8 @@ public class SkillCompatContractTest {
     void qoderListing_namespacesEachEntryById() throws Exception {
         MvcResult result = mvc.perform(MockMvcRequestBuilders.get("/skill/compat/qoder/skills"))
                 .andExpect(status().isOk()).andReturn();
-        List<Map<String, Object>> list = mapper.readValue(
-                result.getResponse().getContentAsString(StandardCharsets.UTF_8), List.class);
+        List<Map<String, Object>> list = plainList(
+                result.getResponse().getContentAsString(StandardCharsets.UTF_8));
 
         assertEquals(2, list.size());
         assertEquals(keys("description", "location", "name", "source"), list.get(0).keySet());
