@@ -89,5 +89,14 @@
             <artifactId>javax.servlet-api</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- 只给契约测试用的自研 JSON: 读响应体不再走 ObjectMapper.
+             只引 parser-json(不引 z-util-core), 因为 JsonUtil 在这个包里且自包含,
+             core 会拖进 javax.mail / pattern-* 一大串本仓用不到的东西.
+             版本由根 dependencyManagement 钉在 1.1.1. -->
+        <dependency>
+            <groupId>io.github.yuku123</groupId>
+            <artifactId>z-util-parser-json</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
