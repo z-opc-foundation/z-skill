@@ -61,13 +61,14 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot</artifactId>
         </dependency>
-        <!-- 全仓只剩这一处 Jackson: SkillController.install 的入参是 @RequestBody JsonNode,
-             那是 MVC 消息转换器契约(请求体由容器的 ObjectMapper 反序列化成 JsonNode),
-             按裁定不动 MVC DTO。归一化/聚合/发现三条业务链路已零 Jackson,
-             树导航全部改走 z-util 的 JsonUtil/JsonCursor。 -->
+        <!-- Jackson 只在测试期需要: SkillControllerTest 的 Resp 用 ObjectMapper 解析响应体.
+             主源码已零 Jackson —— install 的入参曾是 @RequestBody JsonNode, 那是应用逻辑在读
+             id/name/installedBy/source 四个散字段而非 DTO 契约, 已换成 Map<String,Object>;
+             运行期 MVC 消息转换器要的 jackson 由 z-skill-admin 的 starter-web 传递进来. -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

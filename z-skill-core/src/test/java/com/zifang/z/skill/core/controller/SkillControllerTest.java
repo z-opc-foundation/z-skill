@@ -1,6 +1,5 @@
 package com.zifang.z.skill.core.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
@@ -527,9 +526,10 @@ public class SkillControllerTest {
         return new Resp(r.getBody());
     }
 
-    private JsonNode jsonBody(String json) {
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> jsonBody(String json) {
         try {
-            return mapper.readTree(json);
+            return mapper.readValue(json, Map.class);
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

@@ -1,6 +1,5 @@
 package com.zifang.z.skill.core.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.zifang.z.skill.api.dto.AggregateReportDto;
 import com.zifang.z.skill.api.dto.SkillDto;
 import com.zifang.z.skill.api.dto.SkillInstallDto;
@@ -201,18 +200,22 @@ public class SkillController {
     }
 
     @PostMapping("/install")
-    public SkillInstallDto install(@RequestBody(required = false) JsonNode body) {
-        if (body == null || !body.hasNonNull("id") && !body.hasNonNull("name")) {
+    public SkillInstallDto install(@RequestBody(required = false) Map<String, Object> body) {
+        if (body == null || (body.get("id") == null && body.get("name") == null)) {
             throw SkillException.badRequest("需要 id 或 name 字段");
         }
-        String id = body.hasNonNull("id") ? body.get("id").asText() : body.get("name").asText();
-        String installedBy = body.hasNonNull("installedBy") ? body.get("installedBy").asText() : "system";
-        String channel = body.hasNonNull("source") ? body.get("source").asText()
-                : (body.hasNonNull("channel") ? body.get("channel").asText() : "marketplace");
+        String id = text(body.get("id") != null ? body.get("id") : body.get("name"));
+        String installedBy = body.get("installedBy") != null ? text(body.get("installedBy")) : "system";
+        String channel = body.get("source") != null ? text(body.get("source"))
+                : (body.get("channel") != null ? text(body.get("channel")) : "marketplace");
         // 安装记录原样回显 = 把 origin 那条 file:///Users/... 发给没鉴权的端口.
         // 实测(2026-09-25): 公共面每个出口都过了 PublicSurface, 只有这一个"写出口"漏了 ——
         // 它不在 GET 清单里, 也不在页面 fetch 的路径清单里.
         return PublicSurface.install(registry.install(id, installedBy, channel));
+    }
+
+    private static String text(Object value) {
+        return value == null ? null : String.valueOf(value);
     }
 
     @DeleteMapping("/uninstall/{id}")
