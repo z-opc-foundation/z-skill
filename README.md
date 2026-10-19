@@ -92,7 +92,7 @@
 - 外部标识一律 `source/slug`（`externalId`），本身可能带斜杠，见下方"带斜杠的 id"。
 
 **6. 依赖面**：`z-skill-core` 的 POM 声明了 `z-agent-kernel-{skill,message,types,tool}:0.1.0`
-（用直接 DM 覆盖 `z-boot-fleet` 的 0.1.1 槽位），但实测**主代码没有一处 import 它们**——
+（用直接 DM 覆盖 `z-boot-parent` 的兄弟仓版本槽位），但实测**主代码没有一处 import 它们**——
 唯一被真正用到的第三方是 jackson-databind、spring-web/webmvc、spring-boot(-autoconfigure)、slf4j。
 根 POM 注释里"依赖 kernel.skill SPI"是历史设计，不是当前实现；主代码也不引用 servlet API
 （`CoreStaysServletFreeTest` 钉住这条，好让非 web 宿主能安全 component-scan core）。
