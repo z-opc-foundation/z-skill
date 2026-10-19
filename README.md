@@ -17,12 +17,12 @@
 | **仓库** | `z-skill`（org agent family 成员） |
 | **Maven 坐标** | `io.github.yuku123:z-skill{,-api,-core,-starter,-admin}:${revision}` |
 | **当前版本** | `0.2.2`（根 POM `<revision>`，CI-friendly + flatten-maven-plugin `flattenMode=oss`，2026-09-29 从 `resolveCiFriendliesOnly` 改过来） |
-| **父项目** | `io.github.yuku123:z-boot-parent:1.0.21`（`<relativePath/>` 留空；根 POM 顶部注释仍写着 1.0.19，那是上一轮消费者改造留下的**陈旧注释**，实测 `<parent>` 已是 1.0.21） |
+| **父项目** | `io.github.yuku123:z-boot-parent:1.1.0`（`<relativePath/>` 留空；根 POM 顶部注释仍写着 1.0.19，那是上一轮消费者改造留下的**陈旧注释**，实测 `<parent>` 已是 1.1.0） |
 | **模块数** | 4（`z-skill-api` / `z-skill-core` / `z-skill-starter` / `z-skill-admin`），5 个坐标含聚合 POM |
 | **Maven Central** | **已发布**：`0.1.0`/`0.1.1`/`0.1.2`/`0.2.0`/`0.2.1`/`0.2.2` 六个版本的 api/core/starter/admin 的 `.pom` 与 `.jar` 均可从 repo1 取回（ranged GET 实测 206；`maven-metadata.xml` latest/release 均为 `0.2.2`；反向对照 `0.2.3` 回 404）。[`_doc/006_release/`](_doc/006_release/) 那篇记的是 **0.2.0 那一趟**，不是当前版本号 |
 | **默认端口** | 本仓不带端口（无可启动应用、无 yml）。测试宿主 `SkillHostLauncher` 读 `-Dserver.port`，缺省 `18099`；生产端口由宿主 `server.port` 决定 |
-| **运行口径** | Java 8 · Spring Boot 2.7.18（版本口径与第三方地板均由父链 `z-boot-parent` → `z-boot-dependencies` 供给，本仓 POM 不再重复声明） |
-| **下游 pin** | `z-boot-fleet` 的 `z-skill.version` 现为 `0.2.2`（全组织 `pom.xml` 里唯一一处该 pin）；对外一行集成走 `io.github.yuku123:z-boot-skill-starter:1.0.21`（它只依赖 `z-skill-starter`） |
+| **运行口径** | Java 8 · Spring Boot 2.7.18（版本口径与第三方地板均由父链 `z-boot-parent` 供给——第三方地板已并进 parent 自身，`z-boot-dependencies` 文件夹随 2026-10-08 火车制拓扑退役，本仓 POM 不再重复声明） |
+| **下游 pin** | `z-boot-parent` 的 `z-skill.version` 现为 `0.2.2`（全组织 `pom.xml` 里唯一一处该 pin——原 `z-boot-fleet` 文件夹已退役，pin 并进 parent）；对外一行集成走 `io.github.yuku123:z-boot-skill-starter:1.1.1`（它只依赖 `z-skill-starter`；repo1 上 latest/release 均为 `1.1.1`） |
 | **最近更新** | 2026-09-30 |
 
 ---
@@ -103,9 +103,9 @@
 
 ```
 z-skill/
-├── pom.xml             # 聚合 POM：z-boot-parent:1.0.21、<revision>0.2.2</revision>、5 坐标自钉、central profile
+├── pom.xml             # 聚合 POM：z-boot-parent:1.1.0、<revision>0.2.2</revision>、5 坐标自钉、central profile
 ├── LICENSE             # MIT
-├── _doc/               # 非编号目录（本仓没按 org 的 001_arch 树收口），见文末「文档目录」
+├── _doc/               # 文档收口目录（已按 org 的编号树收口，001_arch 是强制桶），见文末「文档目录」
 ├── z-skill-api/        # DTO + 异常 + SkillFormat/SkillSpec，零第三方依赖；无测试类
 ├── z-skill-core/       # discover / normalize / aggregate / registry / search / scan / content / spec / controller
 ├── z-skill-starter/    # ZSkillAutoConfiguration + spring.factories；不依赖 admin
@@ -143,7 +143,7 @@ mvn -o clean install      # 全 reactor；clean 不要省（target/ 里的陈货
 ### 作为库接入宿主
 
 ```xml
-<!-- 方式一：z-boot 聚合 starter（版本由 z-boot-fleet 供给，现指向 z-skill 0.2.2） -->
+<!-- 方式一：z-boot 聚合 starter（版本由 z-boot-parent 的兄弟仓权威表供给，现指向 z-skill 0.2.2） -->
 <dependency>
     <groupId>io.github.yuku123</groupId>
     <artifactId>z-boot-skill-starter</artifactId>
@@ -383,9 +383,11 @@ _Maintained by the z-opc-foundation organization._
 ## 文档目录
 
 - [`_doc/008_troubleshooting/`](_doc/008_troubleshooting/) — 踩坑与失败要点（测试语料依赖）
-本仓 `_doc/` **没有**按组织的编号收口（不是 `001_arch` / `002_deploy` / `003_script` / `004_skill` 那棵树），
-下面是现有真实文件的全量链接，不编造 conforming 结构：
+本仓 `_doc/` 按组织的编号收口（`001_arch` 是规范里的唯一强制桶，已建），
+下面是现有真实文件的全量链接，不编造不存在的桶：
 
+- [`_doc/001_arch/`](_doc/001_arch/) — 架构文档：
+  - [`00-overview.md`](_doc/001_arch/00-overview.md) — 项目总览（模块架构、核心功能、对外集成 / 上下游、技术特点、目录结构）。
 - [`_doc/006_release/`](_doc/006_release/) — Central 发布与对账记录（一趟的全程判据，供下一趟照着跑）:
   - [`001_0.2.0发布与对账.md`](_doc/006_release/001_0.2.0发布与对账.md) — `0.2.0` 那一趟的提交/上传/可见/字节对账/验签/标签读数，
     含上面「发布」两节里那几条雷的取数命令，以及 §7"本机跑的确实是发布字节"怎么量（`bind(0)` 那条教训）。状态：**已闭合**。
@@ -393,9 +395,9 @@ _Maintained by the z-opc-foundation organization._
   - [`README.md`](_doc/007_backlog/README.md) — 待办索引：两格现状、登记口径（"数字一律现场测，不许抄文档里的旧数"）。
   - [`feature002_downstream_pins/001_抬pin与验证.md`](_doc/007_backlog/feature002_downstream_pins/001_抬pin与验证.md) —
     抬下游 `z-skill.version` pin 的验证方法。**注**：文里记的"z-boot 已抬 / z-opc 两处仍 0.1.2"是 09-26 的读数，
-    今天实测全组织只剩 `z-boot-fleet` 一处 `z-skill.version=0.2.2`（`rg "z-skill\.version>" -g 'pom.xml'`）。
+    今天实测全组织只剩 `z-boot-parent` 一处 `z-skill.version=0.2.2`（`rg "z-skill\.version>" -g 'pom.xml'`）。
   - [`feature003_gauge_gaps/001_待排产.md`](_doc/007_backlog/feature003_gauge_gaps/001_待排产.md) — 量具上三个洞
     （两支等价变异 + 一条下游占位断言），状态：**待排产**（不等裁定，等归属）。
 
-架构、部署、脚本类的文档目前本仓没有；能力与契约以本 README 上文（每条都对应到 `src/main` 里的类或注解）
-和测试源码为准。
+架构总览已收进 `_doc/001_arch/00-overview.md`；部署、脚本类的文档目前本仓没有。
+能力与契约以本 README 上文（每条都对应到 `src/main` 里的类或注解）和测试源码为准。
