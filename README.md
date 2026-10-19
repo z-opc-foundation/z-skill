@@ -382,6 +382,7 @@ _Maintained by the z-opc-foundation organization._
 
 ## 文档目录
 
+- [`_doc/008_troubleshooting/`](_doc/008_troubleshooting/) — 踩坑与失败要点（测试语料依赖）
 本仓 `_doc/` **没有**按组织的编号收口（不是 `001_arch` / `002_deploy` / `003_script` / `004_skill` 那棵树），
 下面是现有真实文件的全量链接，不编造 conforming 结构：
 
