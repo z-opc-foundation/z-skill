@@ -297,8 +297,16 @@ public class RealWorldSkillCorpusTest {
                 "语料来源没全挂上, 缺的目录: 根=" + f.root + " 实挂=" + f.sourceRoots.keySet());
         assertTrue(f.expectedSkillMd.size() >= 10,
                 "真实语料里只找到 " + f.expectedSkillMd.size() + " 个可达 SKILL.md(<10), 断言没有意义. 根=" + f.root);
-        assertEquals(27, f.expectedSkillMd.size(),
-                "本仓实测 27 个 SKILL.md, 现在数量变了, 逐条: " + f.expectedSkillMd.keySet());
+        // 语料是**跨仓**的（z-opc / z-opc-foundation-lead / z-env / z-lc 四仓的 skill 目录），
+        // 兄弟仓加一个 SKILL.md 就会把本仓构建打红 —— 那不是本仓的回归，是别人家的正常生长。
+        // 2026-10-20 实测: lead 仓新增 2 个 skill（git-history-collapse / maven-inventory），
+        // 语料从 27 涨到 29，本仓构建因此红过一次。
+        // ⇒ 这里钉**下限**（语料塌到 27 以下说明语料没了，要红），不钉上限
+        //   （上限会随兄弟仓正常生长而漂，等于给别人的提交埋雷）。
+        // 与本文件其它处同口径：下面一律用 >= 的下限，并写明「不认任何手写常量」。
+        assertTrue(f.expectedSkillMd.size() >= 27,
+                "真实语料里可达的 SKILL.md 少于 27 个（27 是 2026-10-20 之前的实测值，现在地板仍是它），"
+                        + "语料塌了, 现在只有 " + f.expectedSkillMd.size() + " 个, 逐条: " + f.expectedSkillMd.keySet());
 
         int withFm = 0;
         int withoutFm = 0;
