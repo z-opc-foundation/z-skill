@@ -23,7 +23,7 @@
 | **默认端口** | 本仓不带端口（无可启动应用、无 yml）。测试宿主 `SkillHostLauncher` 读 `-Dserver.port`，缺省 `18099`；生产端口由宿主 `server.port` 决定 |
 | **运行口径** | Java 8 · Spring Boot 2.7.18（版本口径与第三方地板均由父链 `z-boot-parent` 供给——第三方地板已并进 parent 自身，`z-boot-dependencies` 文件夹随 2026-10-08 火车制拓扑退役，本仓 POM 不再重复声明） |
 | **下游 pin** | `z-boot-parent` 的 `z-skill.version` 现为 `0.2.2`（全组织 `pom.xml` 里唯一一处该 pin——原 `z-boot-fleet` 文件夹已退役，pin 并进 parent）；对外一行集成走 `io.github.yuku123:z-boot-skill-starter:1.1.1`（它只依赖 `z-skill-starter`；repo1 上 latest/release 均为 `1.1.1`） |
-| **最近更新** | 2026-09-30 |
+| **最近更新** | 2026-10-20 |
 
 ---
 
@@ -127,7 +127,7 @@ z-skill/
 | JSON | jackson-databind（`ObjectMapper` 由宿主注入，缺省时自建） |
 | 远端取数 | `HttpFetcher.Jdk`（`HttpURLConnection`，连接/读超时各 8000ms，跟随跳转，响应体 8MB 上限，按 UTF-8 解码） |
 | 日志 | slf4j-api |
-| 测试 | JUnit 4（`junit:junit`）+ JUnit 5 / spring-boot-starter-test（core 排除 vintage，starter 显式补回）；MockMvc + 真 Tomcat 宿主两种量具 |
+| 测试 | JUnit 5（`junit-jupiter`，**根 POM 直供**，所有子模块继承）+ vintage 引擎（`junit-vintage-engine`，同样根 POM 直供；core / starter / admin 三个模块的 `spring-boot-starter-test` 统一**排除**传递来的 vintage，避免重复声明）—— 仓内现存测试**全是 JUnit 5**（`org.junit.jupiter.api.Test`），**没有** JUnit 4 用例；MockMvc + 真 Tomcat 宿主两种量具 |
 | 构建 | Maven · flatten-maven-plugin 1.7.2（`oss`）· central-publishing-maven-plugin 0.8.0（`autoPublish=true`）· maven-release-plugin 3.1.1（`v@{project.version}`） |
 
 ---
@@ -330,9 +330,18 @@ mvn -o clean test                                     # 全 reactor，离线可�
 mvn -o -pl z-skill-core -am -Dtest=HttpFetcherJdkLiveTest test   # 单类
 ```
 
-测试类分布（实测 `find */src/test -name '*Test.java'`）：core 24、admin 4、starter 1、api 0。
-0.2.0 那一趟发布构建的全量读数记在 [`_doc/006_release/`](_doc/006_release/)：330 条 / 0 失败 / 0 错误（core 295、starter 12、admin 23）；
-本次 README 更新**没有重跑 mvn**，所以那个数是那一趟的读数，不是今天的读数。
+截至 2026-10-20 的快照（测试类口径 `find */src/test -name '*Test.java'`）：**core 25 / admin 4 / starter 1 / api 0**；
+用例数（口径 `grep -r '^\s*@Test' --include='*.java' */src/test | wc -l`，与 surefire 自报逐模块一致）：
+**core 303 / starter 12 / admin 23**，合计 **338** 条。这两个数**随用例增删而变**，此处只作快照登记；
+README 自守卫**不钉它们**（钉了必漂），改钉源码侧的事实（版本 / 模块清单 / format 种数 / 风险等级 /
+校验上限 / 端点集合 / 平台落点 / 聚合常量 / 取数器口径）。`z-skill-api` 没有测试源码（纯 DTO），
+那是说得出名字的空格，不是缺格。
+
+0.2.0 那一趟发布构建的全量读数记在 [`_doc/006_release/`](_doc/006_release/)：330 条 / 0 失败 / 0 错误（core 295、starter 12、admin 23）——
+那是**那一趟**的读数，不是今天的读数（今天的整仓读数见上一段）。
+
+README 自守卫在 `z-skill-core/src/test/java/com/zifang/z/skill/core/ReadmeClaimsTest.java`：
+把上文那些定量主张逐条从源码重算，README 改了就红、代码没动就不红。
 
 分层：frontmatter/规范解析边界 → 各家形状适配器 → 文件系统扫描与插件清单派生 → 远端取数在**真 socket**
 上（`HttpFetcherJdkLiveTest`，本机起监听口，不打外网：状态码、超时、8MB 上限、跟跳转、字符集，
