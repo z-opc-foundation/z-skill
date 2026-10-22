@@ -1,8 +1,8 @@
 /** 技能目录：/skill/list + 分类过滤 + 搜索 + 已安装视图。 */
 import {useEffect, useState} from 'react'
-import {Button, Card, Select, Space, Table, Tag, Typography} from 'antd'
+import {Button, Select, Space, Tag, Typography} from 'antd'
 import {ReloadOutlined, SearchOutlined} from '@ant-design/icons'
-import {EmptyState, ErrorState, SearchInput, TableToolbar} from '@yuku123/z-frontend-common/ui'
+import {ErrorState, ListTable, SearchInput, TableToolbar} from '@yuku123/z-frontend-common/ui'
 import {skillApi} from '../services/api'
 
 const {Title, Paragraph, Text} = Typography
@@ -92,11 +92,18 @@ export default function SkillCatalog() {
                 </div>
             )}
 
-            <Card>
-                <Table rowKey={(r, i) => r.name || r.code || i} dataSource={rows} columns={columns}
-                       loading={loading} size="small" pagination={{pageSize: 20}}
-                       locale={{emptyText: <EmptyState title="暂无技能" description="换个关键词或分类再找找"/>}}/>
-            </Card>
+            {/* 分页/空态由基座 ListTable 统一承接。
+                搜索与分类过滤走后端（/skill/search、/skill/list），
+                工具条里已经有 SearchInput + 分类下拉，所以不传 searchKeys ——
+                再加一个过滤框就是页面上两个搜索框。 */}
+            <ListTable
+                rows={rows}
+                columns={columns}
+                rowKey={(r, i) => r.name || r.code || i}
+                loading={loading}
+                emptyTitle="暂无技能"
+                emptyDescription="换个关键词或分类再找找"
+            />
         </div>
     )
 }
