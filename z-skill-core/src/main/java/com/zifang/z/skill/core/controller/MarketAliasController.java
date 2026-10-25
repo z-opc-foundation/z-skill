@@ -30,6 +30,9 @@ import java.util.Map;
  *   <li>{@code GET /api/skill/categories|sources|stats|installed} — 目录侧信息与"我的安装"</li>
  *   <li>{@code GET /api/skill/detail?id=} 与 {@code GET /api/skill/content?id=&file=} — 详情与文件预览</li>
  *   <li>{@code POST /api/skill/install} / {@code DELETE /api/skill/uninstall/{id}} / {@code POST /api/skill/refresh}</li>
+ *   <li>{@code POST /api/skill/publish} — 写出并发布（发布目录是市场的一个来源）</li>
+ *   <li>{@code GET /api/skill/download?id=} — 拿下来（取完整文件包）</li>
+ *   <li>{@code POST /api/skill/install-files} — 装到本机技能目录（落盘）</li>
  * </ul>
  */
 @RestController
@@ -111,6 +114,29 @@ public class MarketAliasController {
     @PostMapping("/refresh")
     public Map<String, Object> refresh() {
         return ok(delegate.refresh());
+    }
+
+    /**
+     * 「写出并发布」—— 自己写的 skill 落进发布目录.
+     *
+     * <p>发布目录是市场的一个来源 ⇒ 发布完 {@code POST /skill/refresh} 即可检索到.
+     * 前端曾经对着 {@code /skill/upload} 写过, 但那个端点在后端<b>从未存在过</b> ⇒ 这里用 publish 这条正名.
+     */
+    @PostMapping("/publish")
+    public Map<String, Object> publish(@RequestBody(required = false) Map<String, Object> body) {
+        return ok(delegate.publish(body));
+    }
+
+    /** 「拿下来」—— 取一个 skill 的完整文件包（主文件 + 随包文件）. */
+    @GetMapping("/download")
+    public Map<String, Object> download(@RequestParam("id") String id) {
+        return ok(delegate.download(id));
+    }
+
+    /** 「装上能用」—— 把 skill 的文件复制到安装目录（agent 运行时的 skill 根）. */
+    @PostMapping("/install-files")
+    public Map<String, Object> installFiles(@RequestBody(required = false) Map<String, Object> body) {
+        return ok(delegate.installFiles(body));
     }
 
     /**

@@ -6,6 +6,7 @@ import com.zifang.z.skill.core.content.SkillContentReader;
 import com.zifang.z.skill.core.discover.PlatformPresets;
 import com.zifang.z.skill.core.discover.SkillSource;
 import com.zifang.z.skill.core.properties.SkillProperties;
+import com.zifang.z.skill.core.publish.SkillPublishService;
 import com.zifang.z.skill.core.registry.SkillRegistry;
 import com.zifang.z.skill.core.scan.SkillSecurityScanner;
 import com.zifang.z.skill.core.search.SkillSearchEngine;
@@ -19,6 +20,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -50,6 +55,37 @@ public class ZSkillAutoConfiguration {
         return new SkillSecurityScanner();
     }
 
+    /**
+     * 技能小册子平台的「写出 → 发布 → 拿下来」服务.
+     *
+     * <p>发布目录 / 安装目录都从 {@code z.skill.publish-dir} / {@code z.skill.install-dir} 取,
+     * 留空就不生成目录（发布面会明确报"未配置"，不静默成功）.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public SkillPublishService skillPublishService(SkillRegistry registry, SkillSecurityScanner scanner,
+                                                   SkillProperties props) {
+        Path publishDir = dirOrNull(props.getPublishDir());
+        Path installDir = dirOrNull(props.getInstallDir());
+        ensureDir(publishDir);
+        ensureDir(installDir);
+        return new SkillPublishService(publishDir, installDir, registry, scanner);
+    }
+
+    private static Path dirOrNull(String raw) {
+        if (raw == null || raw.trim().isEmpty()) return null;
+        return Paths.get(raw.trim()).toAbsolutePath().normalize();
+    }
+
+    private static void ensureDir(Path dir) {
+        if (dir == null) return;
+        try {
+            Files.createDirectories(dir);
+        } catch (IOException e) {
+            log.warn("z-skill: 创建目录失败 {}: {}", dir, e.toString());
+        }
+    }
+
     @Bean
     @ConditionalOnMissingBean
     public SkillContentReader skillContentReader() {
@@ -68,6 +104,17 @@ public class ZSkillAutoConfiguration {
                                            SkillSecurityScanner scanner) {
         SkillAggregator aggregator = new SkillAggregator(registry, scanner);
         int priority = 10;
+        // 发布目录是市场的一个来源: 发布出去的 skill 刷新后即可被检索/预览（不必再注册一次）
+        String publishDir = props.getPublishDir();
+        if (publishDir != null && !publishDir.trim().isEmpty()) {
+            Path dir = dirOrNull(publishDir);
+            ensureDir(dir);
+            if (dir != null && SkillAggregator.directoryExists(dir.toString())) {
+                aggregator.addSource(new SkillSource(SkillPublishService.PUBLISHED_SOURCE_ID,
+                        SkillFormat.AGENT_SKILLS, dir.toString(), 5).maxDepth(4).categoryHint("custom"));
+                log.info("z-skill: 发布目录已挂进市场: {} (source={})", dir, SkillPublishService.PUBLISHED_SOURCE_ID);
+            }
+        }
         for (SkillProperties.Source declared : props.getSources()) {
             SkillSource source = toSource(declared, props, priority);
             if (source == null) {

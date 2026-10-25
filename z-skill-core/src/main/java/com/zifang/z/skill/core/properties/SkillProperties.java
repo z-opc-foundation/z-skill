@@ -37,6 +37,30 @@ public class SkillProperties {
     private boolean scanRemoteOnStartup = false;
     private List<Source> sources = new ArrayList<Source>();
 
+    /**
+     * 发布目录 —— 「自己写出 skill → 发布到小册子平台」的落点.
+     *
+     * <p>这个目录本身会作为市场的一个来源（source id = {@code z-opc-published}）⇒ 发布完刷新聚合,
+     * 市场里就能检索到 / 预览到, 不需要再注册任何东西.
+     *
+     * <p>留空 = 不开发布面（{@code POST /skill/publish} 直接报"未配置发布目录"，不静默成功）.
+     */
+    private String publishDir = "";
+
+    /**
+     * 安装目录 —— 「拿下来」的落点, 也是 agent 运行时扫描 skill 的根.
+     *
+     * <p>目录布局必须是 {@code <root>/<category>/<name>/SKILL.md}: 这是 agent 运行时 skill 扫描器的约定,
+     * 装完即被吃到（否则"装了但用不上"）.
+     */
+    private String installDir = "";
+
+    public String getPublishDir() { return publishDir; }
+    public void setPublishDir(String v) { this.publishDir = v == null ? "" : v; }
+
+    public String getInstallDir() { return installDir; }
+    public void setInstallDir(String v) { this.installDir = v == null ? "" : v; }
+
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
 

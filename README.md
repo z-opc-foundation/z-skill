@@ -16,7 +16,7 @@
 |------|-----|
 | **仓库** | `z-skill`（org agent family 成员） |
 | **Maven 坐标** | `io.github.yuku123:z-skill{,-api,-core,-starter,-admin}:${revision}` |
-| **当前版本** | `0.2.3`（根 POM `<revision>`，CI-friendly + flatten-maven-plugin `flattenMode=oss`，2026-09-29 从 `resolveCiFriendliesOnly` 改过来） |
+| **当前版本** | `0.2.4`（根 POM `<revision>`，CI-friendly + flatten-maven-plugin `flattenMode=oss`，2026-09-29 从 `resolveCiFriendliesOnly` 改过来） |
 | **父项目** | `io.github.yuku123:z-boot-parent:1.1.0`（`<relativePath/>` 留空；根 POM 顶部注释仍写着 1.0.19，那是上一轮消费者改造留下的**陈旧注释**，实测 `<parent>` 已是 1.1.0） |
 | **模块数** | 4（`z-skill-api` / `z-skill-core` / `z-skill-starter` / `z-skill-admin`），5 个坐标含聚合 POM |
 | **Maven Central** | **已发布**：`0.1.0`/`0.1.1`/`0.1.2`/`0.2.0`/`0.2.1`/`0.2.2` 六个版本的 api/core/starter/admin 的 `.pom` 与 `.jar` 均可从 repo1 取回（ranged GET 实测 206；`maven-metadata.xml` latest/release 均为 `0.2.2`；反向对照 `0.2.3` 回 404）。[`_doc/006_release/`](_doc/006_release/) 那篇记的是 **0.2.0 那一趟**，不是当前版本号 |
@@ -76,7 +76,7 @@
   z-skill 不维护版本序列、不做 semver 比较。真正的"上游漂移"靠 `contentHash`：换 hash 即 `changed`，
   消失即 `removed`，已装但消失的保留安装记录并进 `danglingInstalls`。
 - **安装层**：`SkillInstallDto` 在安装那一刻快照 `version` + `contentHash` + `installRef` + `installedBy` + `channel`。
-- **构件层**：库自己的版本是根 POM `<revision>`（现 0.2.3），子 POM 用 `${revision}`，flatten 展开后才发布。
+- **构件层**：库自己的版本是根 POM `<revision>`（现 0.2.4），子 POM 用 `${revision}`，flatten 展开后才发布。
 - ⚠ `SkillDto.pinnedVersion` 目前只是 DTO 上的槽位：本仓 `core`/`admin` 主代码没有任何地方写它
   （`SkillsShApiNormalizerTest` 还专门断言收录阶段必须为空）。要看"装的是哪一版"，读安装记录而不是这个字段。
 
@@ -103,7 +103,7 @@
 
 ```
 z-skill/
-├── pom.xml             # 聚合 POM：z-boot-parent:1.1.0、<revision>0.2.3</revision>、5 坐标自钉、central profile
+├── pom.xml             # 聚合 POM：z-boot-parent:1.1.0、<revision>0.2.4</revision>、5 坐标自钉、central profile
 ├── LICENSE             # MIT
 ├── _doc/               # 文档收口目录（已按 org 的编号树收口，001_arch 是强制桶），见文末「文档目录」
 ├── z-skill-api/        # DTO + 异常 + SkillFormat/SkillSpec，零第三方依赖；无测试类
@@ -172,6 +172,8 @@ mvn -o clean install      # 全 reactor；clean 不要省（target/ 里的陈货
 | `z.skill.max-depth` | `6` | **只作用于自动发现的来源**，而且缺省值 6 走的是"保留各 preset 自带深度"那一支（用户级 `-1` → 扫描器回退 `SkillSpec.MAX_SCAN_DEPTH=6`；`~/.qoder-cn/plugins` 钉 2；项目根 `AGENTS.md` 钉 0）。把它配成 `<=0` 反而会把所有自动发现来源压成 0 层 |
 | `z.skill.project-root` | `""` | 项目侧落点的搜索根 |
 | `z.skill.user-home` | `""` | 家目录侧的根；空则回退 `user.home` 系统属性 |
+| `z.skill.publish-dir` | `""` | **发布目录**——「自己写出 skill → 发布到小册子平台」的落点。留空 = 不开发布面（`POST /skill/publish` 明确报"未配置发布目录"，**不静默成功**）。非空时该目录会**自动挂进市场**（source id `z-opc-published`，优先级 5，格式 `agent-skills`，深度 4）⇒ 发布完 `POST /skill/refresh` 即可检索到 |
+| `z.skill.install-dir` | `""` | **安装目录**——「拿下来」的落点，也是 agent 运行时扫描 skill 的根。目录布局固定为 `<root>/<category>/<name>/SKILL.md`（与 agent 运行时的扫描约定一致 ⇒ 装完即被吃到）。留空 = 不落盘（`install` 仍只登记安装记录，落盘失败不影响安装记录成立） |
 | `z.skill.scan-remote-on-startup` | `false` | ⚠ **死键**：`SkillProperties` 里有字段与 getter，但 core/starter 主代码没有任何读取点（实测 grep 只命中属性类自身）。它**不**关闭远端拉取——`refresh()` 对 `http(s)` 来源一律走 `HttpFetcher`。要真不在启动时打网络，只关 `z.skill.refresh-on-startup` |
 
 yml 形状示例：
@@ -253,6 +255,9 @@ java -Dserver.port=0 \
 | GET | `/skill/content` | `id` + 可选 `file`（资源相对路径） |
 | GET | `/skill/{id}/content` | `file` 可选 |
 | POST | `/skill/install` | JSON body：`id` 或 `name`，可选 `installedBy`（缺省 `system`）、`source`/`channel`（缺省 `marketplace`）；重复安装 409，找不到 404；回执过 `PublicSurface` |
+| POST | `/skill/install-files` | JSON body：`id`（必填）——把 skill 的文件复制到安装目录（`z.skill.install-dir`），布局 `<root>/<category>/<name>/SKILL.md` |
+| GET | `/skill/download` | `id`（必填，id/slug/name/alias 均可寻址）——取回完整文件包（`SKILL.md` + 随包文件） |
+| POST | `/skill/publish` | JSON body：`slug`（必填，`^[a-z0-9]+(-[a-z0-9]+)*$`），可选 `title` `description` `category`（缺省 `custom`）`tags` `version` `content`（正文）`files`（随包文件 map）——**写出并发布**到发布目录；发布目录是市场的一个来源，刷新聚合即可检索到 |
 | DELETE | `/skill/uninstall` | `id`（**可用形**） |
 | DELETE | `/skill/uninstall/{id}` | 路径形，见下方警告 |
 | POST | `/skill/refresh` | — |

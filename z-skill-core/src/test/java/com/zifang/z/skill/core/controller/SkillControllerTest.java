@@ -737,6 +737,12 @@ public class SkillControllerTest {
         ledger.put("/skill/stats", "aggregateReportsOnThePublicSurfaceCarryNoHostPaths");
         ledger.put("/skill/refresh", "aggregateReportsOnThePublicSurfaceCarryNoHostPaths");
         ledger.put("/skill/updates", "upstreamDriftOnThePublicSurfaceCarriesNoHostPaths");
+        // 写出/拿下来/装上这三条写出口: 公共面不许带本机路径（发布目录、安装目录都是宿主机路径）
+        String publishLedger = "com.zifang.z.skill.core.publish.SkillPublishServiceTest#"
+                + "publishDownloadAndInstallFilesCarryNoHostPaths";
+        ledger.put("/skill/publish", publishLedger);
+        ledger.put("/skill/download", publishLedger);
+        ledger.put("/skill/install-files", publishLedger);
         String compat = "com.zifang.z.skill.core.controller.SkillCompatControllerTest#"
                 + "everyCompatExitCarriesNoHostPathForALocalOrigin";
         for (String path : compatMappingPaths()) ledger.put(path, compat);

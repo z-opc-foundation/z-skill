@@ -8,8 +8,12 @@ import com.zifang.z.skill.api.dto.SkillSourceDto;
 import com.zifang.z.skill.api.exception.SkillException;
 import com.zifang.z.skill.core.aggregate.SkillAggregator;
 import com.zifang.z.skill.core.content.SkillContentReader;
+import com.zifang.z.skill.core.publish.SkillPublishService;
 import com.zifang.z.skill.core.registry.SkillRegistry;
 import com.zifang.z.skill.core.search.SkillSearchEngine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,23 +39,36 @@ import java.util.Map;
  *   <li>{@code GET /skill/{id}} 与 {@code GET /skill/detail?id=} — 详情(后者支持带 / 的限定 id)</li>
  *   <li>{@code GET /skill/{id}/content} — SKILL.md 正文与随包文件预览</li>
  *   <li>{@code POST /skill/install} / {@code DELETE /skill/uninstall/{id}} / {@code POST /skill/refresh}</li>
+ *   <li>{@code POST /skill/publish} — 写出并发布（发布目录是市场的一个来源 ⇒ 刷新即可检索到）</li>
+ *   <li>{@code GET /skill/download?id=} — 拿下来（取完整文件包）</li>
+ *   <li>{@code POST /skill/install-files} — 装到本机技能目录（落盘, 装完即被 agent 运行时吃到）</li>
  * </ul>
  */
 @RestController
 @RequestMapping("/skill")
 public class SkillController {
 
+    private static final Logger log = LoggerFactory.getLogger(SkillController.class);
+
     private final SkillRegistry registry;
     private final SkillSearchEngine search;
     private final SkillAggregator aggregator;
     private final SkillContentReader contentReader;
+    private final SkillPublishService publishService;
 
     public SkillController(SkillRegistry registry, SkillSearchEngine search, SkillAggregator aggregator,
                            SkillContentReader contentReader) {
+        this(registry, search, aggregator, contentReader, null);
+    }
+
+    @Autowired
+    public SkillController(SkillRegistry registry, SkillSearchEngine search, SkillAggregator aggregator,
+                           SkillContentReader contentReader, SkillPublishService publishService) {
         this.registry = registry;
         this.search = search;
         this.aggregator = aggregator;
         this.contentReader = contentReader;
+        this.publishService = publishService;
     }
 
     @GetMapping("/search")
@@ -211,7 +228,58 @@ public class SkillController {
         // 安装记录原样回显 = 把 origin 那条 file:///Users/... 发给没鉴权的端口.
         // 实测(2026-09-25): 公共面每个出口都过了 PublicSurface, 只有这一个"写出口"漏了 ——
         // 它不在 GET 清单里, 也不在页面 fetch 的路径清单里.
-        return PublicSurface.install(registry.install(id, installedBy, channel));
+        SkillInstallDto rec = registry.install(id, installedBy, channel);
+        // 「装上能用」的那一半: 复制到安装目录（agent 运行时的 skill 根）.
+        // ⚠ 失败**不**让安装失败: 安装记录才是市场侧的真相, 落盘失败要能单独看到/重试 ⇒ 走 /skill/install-files.
+        if (publishService != null) {
+            try {
+                publishService.installToDisk(rec.getSkillId());
+            } catch (RuntimeException e) {
+                log.warn("z-skill: 安装记录已建, 但落盘到安装目录失败 id={}: {}", rec.getSkillId(), e.toString());
+            }
+        }
+        return PublicSurface.install(rec);
+    }
+
+    /**
+     * 「拿下来」—— 取一个 skill 的完整文件包（主文件 + 随包文件）.
+     *
+     * <p>这是前端曾经写过、但后端<b>从未存在过</b>的那个 {@code /skill/download}:
+     * 没有它, 市场就只有"看"没有"拿", 换台机器/换个 agent 就用不上.
+     */
+    @GetMapping("/download")
+    public Map<String, Object> download(@RequestParam("id") String id) {
+        return publishServiceOrFail().download(id);
+    }
+
+    /**
+     * 「装上能用」—— 把 skill 的文件复制到安装目录（agent 运行时的 skill 根）.
+     *
+     * <p>与 {@code POST /skill/install} 的分工: install 只登记安装记录（市场侧状态）,
+     * install-files 才真正落盘 ⇒ 两者分开, 落盘失败可单独重试, 也不必改 install 的响应契约.
+     */
+    @PostMapping("/install-files")
+    public Map<String, Object> installFiles(@RequestBody(required = false) Map<String, Object> body) {
+        if (body == null || body.get("id") == null) {
+            throw SkillException.badRequest("需要 id 字段");
+        }
+        return publishServiceOrFail().installToDisk(text(body.get("id")));
+    }
+
+    /**
+     * 「写出并发布」—— 把自己写的 skill 落进发布目录（发布目录是市场的一个来源 ⇒ 刷新即可检索到）.
+     */
+    @PostMapping("/publish")
+    public Map<String, Object> publish(@RequestBody(required = false) Map<String, Object> body) {
+        return publishServiceOrFail().publish(body);
+    }
+
+    private SkillPublishService publishServiceOrFail() {
+        if (publishService == null) {
+            throw SkillException.sourceUnavailable("publish",
+                    "发布面未装配（缺少 z.skill.publish-dir / z.skill.install-dir 配置）");
+        }
+        return publishService;
     }
 
     private static String text(Object value) {
