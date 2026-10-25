@@ -25,9 +25,19 @@ function NotFound() {
     )
 }
 
+// mock 账号不写死在仓里（001 凭证规范）：构建期注入 VITE_MOCK_USER / VITE_MOCK_PASSWORD；
+// 未注入 ⇒ 不传 mockAuth，登录页提示「未配置 mock 账号」（SSO 接入后换真实 loginApi）。
+const MOCK_AUTH = import.meta.env.VITE_MOCK_USER && import.meta.env.VITE_MOCK_PASSWORD
+    ? {
+        username: import.meta.env.VITE_MOCK_USER,
+        password: import.meta.env.VITE_MOCK_PASSWORD,
+        user: { name: import.meta.env.VITE_MOCK_USER, role: '管理员' },
+    }
+    : null
+
 // lead 008 §16：短期 mock 登录（账号由宿主注入 VITE_MOCK_USER / VITE_MOCK_PASSWORD），CTC/SSO 接入后换共享 LoginPage loginApi
 function LoginRoute() {
-    return <LoginPage />
+    return <LoginPage mockAuth={MOCK_AUTH} />
 }
 
 function ProtectedShell() {
