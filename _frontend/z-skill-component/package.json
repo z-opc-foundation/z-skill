@@ -1,6 +1,6 @@
 {
   "name": "@yuku123/z-skill-component",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "z-skill 可复用前端组件：技能目录（搜索/分类/清单；lead 005 §9）",
   "type": "module",
   "main": "./dist/index.js",
