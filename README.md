@@ -402,6 +402,7 @@ _Maintained by the z-opc-foundation organization._
 
 - [`_doc/001_arch/`](_doc/001_arch/) — 架构文档：
   - [`00-overview.md`](_doc/001_arch/00-overview.md) — 项目总览（模块架构、核心功能、对外集成 / 上下游、技术特点、目录结构）。
+- [`_doc/003_script/`](_doc/003_script/) — 构建与发布脚本（GPG passphrase 注入器）
 - [`_doc/006_release/`](_doc/006_release/) — Central 发布与对账记录（一趟的全程判据，供下一趟照着跑）:
   - [`001_0.2.0发布与对账.md`](_doc/006_release/001_0.2.0发布与对账.md) — `0.2.0` 那一趟的提交/上传/可见/字节对账/验签/标签读数，
     含上面「发布」两节里那几条雷的取数命令，以及 §7"本机跑的确实是发布字节"怎么量（`bind(0)` 那条教训）。状态：**已闭合**。
@@ -413,5 +414,5 @@ _Maintained by the z-opc-foundation organization._
   - [`feature003_gauge_gaps/001_待排产.md`](_doc/007_backlog/feature003_gauge_gaps/001_待排产.md) — 量具上三个洞
     （两支等价变异 + 一条下游占位断言），状态：**待排产**（不等裁定，等归属）。
 
-架构总览已收进 `_doc/001_arch/00-overview.md`；部署、脚本类的文档目前本仓没有。
+架构总览已收进 `_doc/001_arch/00-overview.md`；发布脚本见 `_doc/003_script/`，部署类文档目前本仓没有。
 能力与契约以本 README 上文（每条都对应到 `src/main` 里的类或注解）和测试源码为准。
