@@ -90,8 +90,8 @@
              javax.servlet 的类型做断言, 所以放在 test 域, 连 provided 都不给 — provided 也不会传递到
              下游模块, 摆在那儿只会诱使主代码再写一次 -->
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
             <scope>test</scope>
         </dependency>
         <!-- 自研 JSON: 主代码的树导航(读取 skill 目录/注册表 JSON)已改走 JsonUtil/JsonCursor,

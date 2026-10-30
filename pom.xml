@@ -21,7 +21,7 @@
     <parent>
         <groupId>io.github.yuku123</groupId>
         <artifactId>z-boot-parent</artifactId>
-        <version>1.1.0</version>
+        <version>1.2.0</version>
         <relativePath/>
     </parent>
 
@@ -79,7 +79,18 @@
 
     <properties>
         <!-- CI-friendly 版本: 子模块 <parent> 与本仓 DM 自钉都引用它; flatten(oss)负责展开 -->
-        <revision>0.2.4</revision>
+        <!-- 0.2.5: **SB3 火车全量迁移**（2026-10-30）—— parent 抬到 z-boot-parent 1.2.0
+             （Boot 3.3.13 地板）、javax.* → jakarta.*、
+             META-INF/spring.factories → META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+             （z-skill-starter → ZSkillAutoConfiguration；z-skill-admin → ZSkillAdminAutoConfiguration）。
+             ⚠ 0.2.4 已被 2026-10-25 之前的发布占位（Central 上 z-skill-starter:0.2.4 在列，
+             且实测解包仍是 spring.factories 格式 = Boot 2.7 版）⇒ 同号不可重发 ⇒ 本次跳到 0.2.5。 -->
+        <revision>0.2.5</revision>
+
+        <!-- 2026-10-30 补：central profile 的 gpg 块用 ${central.gpg.skip} 控制签名开关，
+             本仓此前**未定义**该属性 ⇒ ${central.gpg.skip} 解析成字面量、boolean 参数强转失败。
+             与 z-qa / z-mist 同口径，默认 false（不跳过签名）。 -->
+        <central.gpg.skip>false</central.gpg.skip>
 
         <!-- maven.compiler.source/target=8、project.build.sourceEncoding=UTF-8、
              spring-boot.version=2.7.18 三个键由父链提供, 已删除(本仓不再重复声明). -->
@@ -112,7 +123,7 @@
             <dependency>
                 <groupId>io.github.yuku123</groupId>
                 <artifactId>z-util-core</artifactId>
-                <version>1.2.2</version>
+                <version>1.2.0</version>
             </dependency>
             <dependency>
                 <groupId>io.github.yuku123</groupId>
@@ -316,6 +327,27 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
                         <version>3.2.7</version>
+                        <configuration>
+                            <skip>${central.gpg.skip}</skip>
+                            <!-- 2026-10-30 补 gpg 签名配置（本仓 central profile 此前**完全没有**
+                                 configuration ⇒ 插件默认按 local-user=default 找密钥、
+                                 走 gpg-agent 取口令 ⇒ headless 下必死在 "No pinentry"）。
+                                 与 z-ctc 1.0.6 / z-util 1.2.12 / z-mist 1.0.5 / z-qa 1.1.1 同款口径：
+                                 ① maven-gpg-plugin 会自己传 pinentry-mode 参数（值 error），
+                                    gpg 对同一选项取最后一次出现的值 ⇒ 调用方的 error 盖掉
+                                    wrapper 自己的 loopback ⇒ 报 "No pinentry" / Exit code: 2。
+                                    修法：wrapper 先剔除入参里的 pinentry-mode 整组，
+                                    再以 loopback 追加（见 _doc/003_script/gpg-with-passphrase.sh）。
+                                 ② 插件默认按 local-user=default 找密钥，本机密钥环里没有
+                                    名为 default 的密钥（只有 uid yuku123 / key A403FCCFD7EF5DA6）
+                                    ⇒ 显式钉 keyname。
+                                 ③ 口令不进 argv（ps 明文可见）⇒ 由 wrapper 从仓根 .env 读出后
+                                    以 passphrase 参数交给系统 gpg，且全程 batch + loopback。
+                                 注：XML 注释里不能出现连续两个减号，上面刻意用「pinentry-mode 参数」
+                                 /「local-user=default」措辞。 -->
+                            <keyname>A403FCCFD7EF5DA6</keyname>
+                            <executable>${maven.multiModuleProjectDirectory}/_doc/003_script/gpg-with-passphrase.sh</executable>
+                        </configuration>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>

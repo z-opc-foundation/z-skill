@@ -50,3 +50,13 @@ Thumbs.db
 # 前端 node_modules / dist
 _frontend/**/node_modules/
 _frontend/**/dist/
+
+# 2026-10-30 SB3 火车发版配套：Central 凭据与 gpg 私钥环（**绝不可入库**）
+.env
+.gnupg/
+**/.gnupg/
+# 「只移不删」产生的构建备份目录（vite emptyOutDir 被安全闸拦时的替代动作）
+dist.bak-*/
+**/dist.bak-*/
+workspace.stale-*/
+**/workspace.stale-*/

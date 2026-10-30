@@ -370,7 +370,7 @@ class ZSkillAutoConfigurationTest {
         Set<String> bindable = setterNames(SkillProperties.class);
         assertEquals(new TreeSet<String>(Arrays.asList("enabled", "refreshOnStartup", "exposeAdmin",
                         "discoverInstalledPlatforms", "projectRoot", "userHome", "maxDepth",
-                        "scanRemoteOnStartup", "sources")), bindable,
+                        "scanRemoteOnStartup", "sources", "installDir", "publishDir")), bindable,
                 "z.skill.* 的可绑定属性集合变了 — README 与宿主配置要一起改");
         assertFalse(bindable.contains("scanDir"), "SkillProperties 并不存在 scan-dir/scanDir 这个开关");
 
