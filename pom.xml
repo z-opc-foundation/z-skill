@@ -39,8 +39,8 @@
     <version>${revision}</version>
     <packaging>pom</packaging>
 
-<name>z-skill :: root</name>
-<description>Skill 平台聚合器: 收各家平台 Skill 形状归一化, 再按各家 API 形状反向输出 (Marketplace + 兼容层) / Skill Platform Aggregator</description>
+    <name>z-skill :: root</name>
+    <description>Skill 平台聚合器: 收各家平台 Skill 形状归一化, 再按各家 API 形状反向输出 (Marketplace + 兼容层) / Skill Platform Aggregator</description>
     <url>https://github.com/z-opc-foundation/z-skill</url>
 
     <licenses>
