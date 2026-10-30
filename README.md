@@ -16,12 +16,12 @@
 |------|-----|
 | **仓库** | `z-skill`（org agent family 成员） |
 | **Maven 坐标** | `io.github.yuku123:z-skill{,-api,-core,-starter,-admin}:${revision}` |
-| **当前版本** | `0.2.4`（根 POM `<revision>`，CI-friendly + flatten-maven-plugin `flattenMode=oss`，2026-09-29 从 `resolveCiFriendliesOnly` 改过来） |
+| **当前版本** | `0.2.5`（根 POM `<revision>`，CI-friendly + flatten-maven-plugin `flattenMode=oss`，2026-09-29 从 `resolveCiFriendliesOnly` 改过来） |
 | **父项目** | `io.github.yuku123:z-boot-parent:1.2.0`（`<relativePath/>` 留空；根 POM 顶部注释仍写着 1.0.19，那是上一轮消费者改造留下的**陈旧注释**，实测 `<parent>` 已是 1.1.0） |
 | **模块数** | 4（`z-skill-api` / `z-skill-core` / `z-skill-starter` / `z-skill-admin`），5 个坐标含聚合 POM |
 | **Maven Central** | **已发布**：`0.1.0`/`0.1.1`/`0.1.2`/`0.2.0`/`0.2.1`/`0.2.2` 六个版本的 api/core/starter/admin 的 `.pom` 与 `.jar` 均可从 repo1 取回（ranged GET 实测 206；`maven-metadata.xml` latest/release 均为 `0.2.2`；反向对照 `0.2.3` 回 404）。[`_doc/006_release/`](_doc/006_release/) 那篇记的是 **0.2.0 那一趟**，不是当前版本号 |
 | **默认端口** | 本仓不带端口（无可启动应用、无 yml）。测试宿主 `SkillHostLauncher` 读 `-Dserver.port`，缺省 `18099`；生产端口由宿主 `server.port` 决定 |
-| **运行口径** | Java 8 · Spring Boot 2.7.18（版本口径与第三方地板均由父链 `z-boot-parent` 供给——第三方地板已并进 parent 自身，`z-boot-dependencies` 文件夹随 2026-10-08 火车制拓扑退役，本仓 POM 不再重复声明） |
+| **运行口径** | Java 17 · Spring Boot 3.3.13（版本口径与第三方地板均由父链 `z-boot-parent` 供给——第三方地板已并进 parent 自身，`z-boot-dependencies` 文件夹随 2026-10-08 火车制拓扑退役，本仓 POM 不再重复声明） |
 | **下游 pin** | `z-boot-parent` 的 `z-skill.version` 现为 `0.2.2`（全组织 `pom.xml` 里唯一一处该 pin——原 `z-boot-fleet` 文件夹已退役，pin 并进 parent）；对外一行集成走 `io.github.yuku123:z-boot-skill-starter:1.1.1`（它只依赖 `z-skill-starter`；repo1 上 latest/release 均为 `1.1.1`） |
 | **最近更新** | 2026-10-20 |
 
@@ -76,7 +76,7 @@
   z-skill 不维护版本序列、不做 semver 比较。真正的"上游漂移"靠 `contentHash`：换 hash 即 `changed`，
   消失即 `removed`，已装但消失的保留安装记录并进 `danglingInstalls`。
 - **安装层**：`SkillInstallDto` 在安装那一刻快照 `version` + `contentHash` + `installRef` + `installedBy` + `channel`。
-- **构件层**：库自己的版本是根 POM `<revision>`（现 0.2.4），子 POM 用 `${revision}`，flatten 展开后才发布。
+- **构件层**：库自己的版本是根 POM `<revision>`（现 0.2.5），子 POM 用 `${revision}`，flatten 展开后才发布。
 - ⚠ `SkillDto.pinnedVersion` 目前只是 DTO 上的槽位：本仓 `core`/`admin` 主代码没有任何地方写它
   （`SkillsShApiNormalizerTest` 还专门断言收录阶段必须为空）。要看"装的是哪一版"，读安装记录而不是这个字段。
 
@@ -103,7 +103,7 @@
 
 ```
 z-skill/
-├── pom.xml             # 聚合 POM：z-boot-parent:1.2.0、<revision>0.2.4</revision>、5 坐标自钉、central profile
+├── pom.xml             # 聚合 POM：z-boot-parent:1.2.0、<revision>0.2.5</revision>、5 坐标自钉、central profile
 ├── LICENSE             # MIT
 ├── _doc/               # 文档收口目录（已按 org 的编号树收口，001_arch 是强制桶），见文末「文档目录」
 ├── z-skill-api/        # DTO + 异常 + SkillFormat/SkillSpec，零第三方依赖；无测试类
@@ -122,7 +122,7 @@ z-skill/
 
 | 层级 | 技术（均来自 POM 与源码实测） |
 |------|------|
-| 语言 / 运行时 | Java 8（父链 `maven.compiler.source/target=8`、编码 UTF-8） |
+| 语言 / 运行时 | Java 17（父链 `maven.compiler.source/target=17`、编码 UTF-8） |
 | 框架 | Spring Boot 2.7.18（地板提供，本仓不写版本钉）；web 层只用 spring-web/spring-webmvc 注解 |
 | JSON | jackson-databind（`ObjectMapper` 由宿主注入，缺省时自建） |
 | 远端取数 | `HttpFetcher.Jdk`（`HttpURLConnection`，连接/读超时各 8000ms，跟随跳转，响应体 8MB 上限，按 UTF-8 解码） |
