@@ -20,7 +20,7 @@ HttpURLConnection 远端取数 · slf4j-api · React 19 + Ant Design 6 + Vite 6 
 
 ```
 z-skill/
-├── pom.xml            # 聚合 POM（packaging=pom）：parent z-boot-parent:1.1.0，<revision>=0.2.2，4 个 module
+├── pom.xml            # 聚合 POM（packaging=pom）：parent z-boot-parent:1.2.4，<revision>=0.2.2，4 个 module
 ├── z-skill-api/       # 纯契约层：7 个 DTO + 异常 + SkillFormat / SkillSpec（零第三方依赖，无测试类）
 ├── z-skill-core/      # 引擎层：discover / normalize / aggregate / registry / search / scan / content / spec / controller
 ├── z-skill-starter/   # 宿主接入层：ZSkillAutoConfiguration + spring.factories（不依赖 admin）
