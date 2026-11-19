@@ -1,5 +1,8 @@
 package com.zifang.z.skill.core.controller;
 
+import com.zifang.z.meta.api.annotation.BizApi;
+import com.zifang.z.meta.api.annotation.BizField;
+import com.zifang.z.meta.api.annotation.BizParam;
 import com.zifang.z.skill.api.dto.SkillDto;
 import com.zifang.z.skill.api.exception.SkillException;
 import com.zifang.z.skill.core.content.SkillContentReader;
@@ -48,9 +51,12 @@ public class SkillCompatController {
     }
 
     @GetMapping(SH_PREFIX + "/api/search")
-    public Map<String, Object> shSearch(@RequestParam(value = "q", required = false) String q,
-                                        @RequestParam(value = "limit", required = false, defaultValue = "50") int limit,
-                                        @RequestParam(value = "owner", required = false) String owner) {
+    @BizApi(summary = "shSearch", description = "", tags = { "z-skill" })
+    public Map<String, Object> shSearch(@RequestParam(value = "q", required = false) @BizParam(name = "q", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String q,
+                                        @RequestParam(value = "limit", required = false, defaultValue = "50")
+                                        @BizParam(name = "limit", type = BizField.FieldType.INTEGER, description = "", position = BizParam.Position.QUERY) int limit,
+                                        @RequestParam(value = "owner", required = false)
+                                        @BizParam(name = "owner", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String owner) {
         SkillSearchEngine.Query query = new SkillSearchEngine.Query().q(q).perPage(clamp(limit, 1, 200)).sort("installs");
         query.source = owner;
         com.zifang.z.skill.api.dto.SkillSearchResultDto result = search.search(query);
@@ -75,9 +81,12 @@ public class SkillCompatController {
     }
 
     @GetMapping(SH_PREFIX + "/api/v1/skills")
-    public Map<String, Object> shList(@RequestParam(value = "view", required = false, defaultValue = "all-time") String view,
-                                      @RequestParam(value = "page", required = false, defaultValue = "0") int page,
-                                      @RequestParam(value = "per_page", required = false, defaultValue = "100") int perPage) {
+    @BizApi(summary = "shList", description = "", tags = { "z-skill" })
+    public Map<String, Object> shList(@RequestParam(value = "view", required = false, defaultValue = "all-time") @BizParam(name = "view", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String view,
+                                      @RequestParam(value = "page", required = false, defaultValue = "0")
+                                      @BizParam(name = "page", type = BizField.FieldType.INTEGER, description = "", position = BizParam.Position.QUERY) int page,
+                                      @RequestParam(value = "per_page", required = false, defaultValue = "100")
+                                      @BizParam(name = "per_page", type = BizField.FieldType.INTEGER, description = "", position = BizParam.Position.QUERY) int perPage) {
         String sort = "hot".equals(view) ? "updated" : "installs";
         SkillSearchEngine.Query query = new SkillSearchEngine.Query().page(Math.max(0, page))
                 .perPage(clamp(perPage, 1, 200)).sort(sort);
@@ -102,8 +111,10 @@ public class SkillCompatController {
      * 客户端把 base 指到老 Boot(AntPathMatcher) 装配上也能路由.
      */
     @GetMapping(SH_PREFIX + "/api/v1/skills/**")
+    @BizApi(summary = "skills.sh 的外部标识本身就是 anthropics/skills/pdf 这种多段形状, 而路径变量在", description = "skills.sh 的外部标识本身就是 anthropics/skills/pdf 这种多段形状, 而路径变量在 两种匹配器下都跨不过 /({id:.+} 只在 AntPathMatcher 的单段里生效, {*id} 只有 PathPatternParser 认) — 所以直接吃 / 的剩余路径, 客户端把 base 指到老 Boot(AntPathMatcher) 装配上也能路由.", tags = { "z-skill" })
     public Map<String, Object> shDetail(
-            @RequestParam(value = "files", required = false, defaultValue = "false") boolean withFiles) {
+            @RequestParam(value = "files", required = false, defaultValue = "false")
+            @BizParam(name = "files", type = BizField.FieldType.BOOLEAN, description = "", position = BizParam.Position.QUERY) boolean withFiles) {
         return shDetail(pathTail(SH_PREFIX + "/api/v1/skills/"), withFiles);
     }
 
@@ -138,6 +149,7 @@ public class SkillCompatController {
     }
 
     @GetMapping(SH_PREFIX + "/api/v1/skills/audit/**")
+    @BizApi(summary = "shAudit", description = "", tags = { "z-skill" })
     public Map<String, Object> shAudit() {
         return shAudit(pathTail(SH_PREFIX + "/api/v1/skills/audit/"));
     }
@@ -169,6 +181,7 @@ public class SkillCompatController {
      */
     @GetMapping({"/.well-known/agent-skills/index.json", "/.well-known/skills/index.json",
             SH_PREFIX + "/.well-known/agent-skills/index.json"})
+    @BizApi(summary = "Agent Skills 注册表发现接口: 任何客户端拿这一个 URL 就能把我们当成一个 skill 平台来装", description = "Agent Skills 注册表发现接口: 任何客户端拿这一个 URL 就能把我们当成一个 skill 平台来装.", tags = { "z-skill" })
     public Map<String, Object> wellKnownIndex() {
         List<Map<String, Object>> skills = new ArrayList<Map<String, Object>>();
         List<SkillDto> all = registry.listAll();
@@ -193,6 +206,7 @@ public class SkillCompatController {
     }
 
     @GetMapping("/skill/compat/qoder/skills")
+    @BizApi(summary = "qoderSkills", description = "", tags = { "z-skill" })
     public List<Map<String, Object>> qoderSkills() {
         List<Map<String, Object>> out = new ArrayList<Map<String, Object>>();
         for (SkillDto dto : registry.listAll()) {
@@ -367,3 +381,6 @@ public class SkillCompatController {
     }
 
 }
+
+
+

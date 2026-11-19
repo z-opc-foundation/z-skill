@@ -1,5 +1,8 @@
 package com.zifang.z.skill.core.controller;
 
+import com.zifang.z.meta.api.annotation.BizApi;
+import com.zifang.z.meta.api.annotation.BizField;
+import com.zifang.z.meta.api.annotation.BizParam;
 import com.zifang.z.skill.api.dto.AggregateReportDto;
 import com.zifang.z.skill.api.dto.SkillDto;
 import com.zifang.z.skill.api.dto.SkillInstallDto;
@@ -72,16 +75,26 @@ public class SkillController {
     }
 
     @GetMapping("/search")
-    public SkillSearchResultDto search(@RequestParam(required = false) String q,
-                                       @RequestParam(required = false) String category,
-                                       @RequestParam(required = false) String tag,
-                                       @RequestParam(required = false) String source,
-                                       @RequestParam(required = false) String format,
-                                       @RequestParam(required = false) String risk,
-                                       @RequestParam(required = false) Boolean installed,
-                                       @RequestParam(required = false, defaultValue = "relevance") String sort,
-                                       @RequestParam(required = false, defaultValue = "0") int page,
-                                       @RequestParam(required = false, defaultValue = "20") int perPage) {
+    @BizApi(summary = "search", description = "", tags = { "z-skill" })
+    public SkillSearchResultDto search(@RequestParam(required = false) @BizParam(name = "q", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String q,
+                                       @RequestParam(required = false)
+                                       @BizParam(name = "category", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String category,
+                                       @RequestParam(required = false)
+                                       @BizParam(name = "tag", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String tag,
+                                       @RequestParam(required = false)
+                                       @BizParam(name = "source", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String source,
+                                       @RequestParam(required = false)
+                                       @BizParam(name = "format", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String format,
+                                       @RequestParam(required = false)
+                                       @BizParam(name = "risk", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String risk,
+                                       @RequestParam(required = false)
+                                       @BizParam(name = "installed", type = BizField.FieldType.BOOLEAN, description = "", position = BizParam.Position.QUERY) Boolean installed,
+                                       @RequestParam(required = false, defaultValue = "relevance")
+                                       @BizParam(name = "sort", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String sort,
+                                       @RequestParam(required = false, defaultValue = "0")
+                                       @BizParam(name = "page", type = BizField.FieldType.INTEGER, description = "", position = BizParam.Position.QUERY) int page,
+                                       @RequestParam(required = false, defaultValue = "20")
+                                       @BizParam(name = "perPage", type = BizField.FieldType.INTEGER, description = "", position = BizParam.Position.QUERY) int perPage) {
         SkillSearchEngine.Query query = new SkillSearchEngine.Query()
                 .q(q).category(category).tag(tag).source(source).format(format).sort(sort).page(page).perPage(perPage);
         query.riskLevel = risk;
@@ -90,9 +103,12 @@ public class SkillController {
     }
 
     @GetMapping("/list")
-    public Map<String, Object> list(@RequestParam(required = false) String category,
-                                    @RequestParam(required = false) String tag,
-                                    @RequestParam(required = false) String source) {
+    @BizApi(summary = "list", description = "", tags = { "z-skill" })
+    public Map<String, Object> list(@RequestParam(required = false) @BizParam(name = "category", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String category,
+                                    @RequestParam(required = false)
+                                    @BizParam(name = "tag", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String tag,
+                                    @RequestParam(required = false)
+                                    @BizParam(name = "source", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String source) {
         SkillSearchEngine.Query query = new SkillSearchEngine.Query();
         query.category = category;
         query.tag = tag;
@@ -106,6 +122,7 @@ public class SkillController {
     }
 
     @GetMapping("/installed")
+    @BizApi(summary = "installed", description = "", tags = { "z-skill" })
     public Map<String, Object> installed() {
         List<SkillDto> skills = PublicSurface.skills(registry.installedSkills());
         Map<String, Object> resp = new LinkedHashMap<String, Object>();
@@ -117,6 +134,7 @@ public class SkillController {
     }
 
     @GetMapping("/categories")
+    @BizApi(summary = "categories", description = "", tags = { "z-skill" })
     public Map<String, Object> categories() {
         Map<String, Object> resp = new LinkedHashMap<String, Object>();
         resp.put("categories", search.categoryCounts());
@@ -125,11 +143,13 @@ public class SkillController {
     }
 
     @GetMapping("/sources")
+    @BizApi(summary = "sources", description = "", tags = { "z-skill" })
     public List<SkillSourceDto> sources() {
         return PublicSurface.sources(registry.getSources());
     }
 
     @GetMapping("/stats")
+    @BizApi(summary = "stats", description = "", tags = { "z-skill" })
     public Map<String, Object> stats() {
         AggregateReportDto report = registry.getLastReport();
         Map<String, Integer> riskDist = new LinkedHashMap<String, Integer>();
@@ -158,6 +178,7 @@ public class SkillController {
 
     /** 上游漂移: 同名 skill 内容 hash 变了的条目. */
     @GetMapping("/updates")
+    @BizApi(summary = "上游漂移: 同名 skill 内容 hash 变了的条目", description = "上游漂移: 同名 skill 内容 hash 变了的条目.", tags = { "z-skill" })
     public Map<String, Object> updates() {
         List<SkillDto> changed = new ArrayList<SkillDto>();
         for (String id : registry.getChanged()) {
@@ -171,12 +192,14 @@ public class SkillController {
     }
 
     @GetMapping("/detail")
-    public Map<String, Object> detailById(@RequestParam("id") String id) {
+    @BizApi(summary = "detailById", description = "", tags = { "z-skill" })
+    public Map<String, Object> detailById(@RequestParam("id") @BizParam(name = "id", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String id) {
         return detail(id);
     }
 
     @GetMapping("/{id}")
-    public Map<String, Object> detail(@PathVariable("id") String id) {
+    @BizApi(summary = "detail", description = "", tags = { "z-skill" })
+    public Map<String, Object> detail(@PathVariable("id") @BizParam(name = "id", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.PATH) String id) {
         SkillDto dto = registry.require(id);
         SkillContentReader.Content content = contentReader.readMain(dto);
         Map<String, Object> resp = new LinkedHashMap<String, Object>();
@@ -197,14 +220,18 @@ public class SkillController {
      * 所以路径变量那条形同虚设 —— 内容预览是详情页的主功能, 不能只对一半的条目可用.
      */
     @GetMapping("/content")
-    public Map<String, Object> contentById(@RequestParam("id") String id,
-                                          @RequestParam(value = "file", required = false) String file) {
+    @BizApi(summary = "正文预览的查询串形. 与上面 /skill/detail 同一个理由: 聚合来的 id 长成 source/slug", description = "正文预览的查询串形. 与上面 /skill/detail 同一个理由: 聚合来的 id 长成 source/slug, 而 Tomcat 默认拒收路径段里的 %2F(实测 400, 到不了 Spring), 不编码又会被切成多段(404), 所以路径变量那条形同虚设 —— 内容预览是详情页的主功能, 不能只对一半的条目可用.", tags = { "z-skill" })
+    public Map<String, Object> contentById(@RequestParam("id") @BizParam(name = "id", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String id,
+                                          @RequestParam(value = "file", required = false)
+                                          @BizParam(name = "file", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String file) {
         return content(id, file);
     }
 
     @GetMapping("/{id}/content")
-    public Map<String, Object> content(@PathVariable("id") String id,
-                                      @RequestParam(value = "file", required = false) String file) {
+    @BizApi(summary = "content", description = "", tags = { "z-skill" })
+    public Map<String, Object> content(@PathVariable("id") @BizParam(name = "id", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.PATH) String id,
+                                      @RequestParam(value = "file", required = false)
+                                      @BizParam(name = "file", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String file) {
         SkillDto dto = registry.require(id);
         SkillContentReader.Content c = file == null ? contentReader.readMain(dto) : contentReader.readResource(dto, file);
         Map<String, Object> resp = new LinkedHashMap<String, Object>();
@@ -217,7 +244,8 @@ public class SkillController {
     }
 
     @PostMapping("/install")
-    public SkillInstallDto install(@RequestBody(required = false) Map<String, Object> body) {
+    @BizApi(summary = "install", description = "", tags = { "z-skill" })
+    public SkillInstallDto install(@RequestBody(required = false) @BizParam(name = "body", type = BizField.FieldType.JSON, description = "", position = BizParam.Position.BODY) Map<String, Object> body) {
         if (body == null || (body.get("id") == null && body.get("name") == null)) {
             throw SkillException.badRequest("需要 id 或 name 字段");
         }
@@ -248,7 +276,8 @@ public class SkillController {
      * 没有它, 市场就只有"看"没有"拿", 换台机器/换个 agent 就用不上.
      */
     @GetMapping("/download")
-    public Map<String, Object> download(@RequestParam("id") String id) {
+    @BizApi(summary = "「拿下来」—— 取一个 skill 的完整文件包（主文件 + 随包文件）", description = "「拿下来」—— 取一个 skill 的完整文件包（主文件 + 随包文件）. 这是前端曾经写过、但后端 从未存在过 的那个 /skill/download: 没有它, 市场就只有\"看\"没有\"拿\", 换台机器/换个 agent 就用不上.", tags = { "z-skill" })
+    public Map<String, Object> download(@RequestParam("id") @BizParam(name = "id", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String id) {
         return publishServiceOrFail().download(id);
     }
 
@@ -259,7 +288,8 @@ public class SkillController {
      * install-files 才真正落盘 ⇒ 两者分开, 落盘失败可单独重试, 也不必改 install 的响应契约.
      */
     @PostMapping("/install-files")
-    public Map<String, Object> installFiles(@RequestBody(required = false) Map<String, Object> body) {
+    @BizApi(summary = "「装上能用」—— 把 skill 的文件复制到安装目录（agent 运行时的 skill 根）", description = "「装上能用」—— 把 skill 的文件复制到安装目录（agent 运行时的 skill 根）. 与 POST /skill/install 的分工: install 只登记安装记录（市场侧状态）, install-files 才真正落盘 ⇒ 两者分开, 落盘失败可单独重试, 也不必改 install 的响应契约.", tags = { "z-skill" })
+    public Map<String, Object> installFiles(@RequestBody(required = false) @BizParam(name = "body", type = BizField.FieldType.JSON, description = "", position = BizParam.Position.BODY) Map<String, Object> body) {
         if (body == null || body.get("id") == null) {
             throw SkillException.badRequest("需要 id 字段");
         }
@@ -270,7 +300,8 @@ public class SkillController {
      * 「写出并发布」—— 把自己写的 skill 落进发布目录（发布目录是市场的一个来源 ⇒ 刷新即可检索到）.
      */
     @PostMapping("/publish")
-    public Map<String, Object> publish(@RequestBody(required = false) Map<String, Object> body) {
+    @BizApi(summary = "「写出并发布」—— 把自己写的 skill 落进发布目录（发布目录是市场的一个来源 ⇒ 刷新即可检索到）", description = "「写出并发布」—— 把自己写的 skill 落进发布目录（发布目录是市场的一个来源 ⇒ 刷新即可检索到）.", tags = { "z-skill" })
+    public Map<String, Object> publish(@RequestBody(required = false) @BizParam(name = "body", type = BizField.FieldType.JSON, description = "", position = BizParam.Position.BODY) Map<String, Object> body) {
         return publishServiceOrFail().publish(body);
     }
 
@@ -287,7 +318,8 @@ public class SkillController {
     }
 
     @DeleteMapping("/uninstall/{id}")
-    public Map<String, Object> uninstall(@PathVariable("id") String id) {
+    @BizApi(summary = "uninstall", description = "", tags = { "z-skill" })
+    public Map<String, Object> uninstall(@PathVariable("id") @BizParam(name = "id", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.PATH) String id) {
         SkillInstallDto removed = registry.uninstall(id);
         Map<String, Object> resp = new LinkedHashMap<String, Object>();
         resp.put("uninstalled", removed.getSkillId());
@@ -295,12 +327,14 @@ public class SkillController {
     }
 
     @DeleteMapping("/uninstall")
-    public Map<String, Object> uninstallById(@RequestParam("id") String id) {
+    @BizApi(summary = "uninstallById", description = "", tags = { "z-skill" })
+    public Map<String, Object> uninstallById(@RequestParam("id") @BizParam(name = "id", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String id) {
         return uninstall(id);
     }
 
     /** 让聚合器重扫全部来源(接了新平台或上游发了新版时用). */
     @PostMapping("/refresh")
+    @BizApi(summary = "让聚合器重扫全部来源(接了新平台或上游发了新版时用)", description = "让聚合器重扫全部来源(接了新平台或上游发了新版时用).", tags = { "z-skill" })
     public AggregateReportDto refresh() {
         return PublicSurface.report(aggregator.refresh());
     }
@@ -311,3 +345,6 @@ public class SkillController {
         map.put(key, n == null ? 1 : n + 1);
     }
 }
+
+
+

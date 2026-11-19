@@ -1,5 +1,6 @@
 package com.zifang.z.skill.admin.service;
 
+import com.zifang.z.meta.api.annotation.BizMethod;
 import com.zifang.z.skill.api.dto.AggregateReportDto;
 import com.zifang.z.skill.api.dto.SkillDto;
 import com.zifang.z.skill.api.dto.SkillIssueDto;
@@ -27,6 +28,7 @@ public class AdminQueryService {
         this.search = search;
     }
 
+    @BizMethod(name = "overview", module = "z-skill", description = "", operation = BizMethod.Operation.ACTION)
     public Map<String, Object> overview() {
         Map<String, Integer> risk = new LinkedHashMap<String, Integer>();
         Map<String, Integer> formats = new LinkedHashMap<String, Integer>();
@@ -66,24 +68,29 @@ public class AdminQueryService {
         return latest;
     }
 
+    @BizMethod(name = "listSkills", module = "z-skill", description = "", operation = BizMethod.Operation.QUERY)
     public List<SkillDto> listSkills(String category) {
         if (category == null) return registry.listAll();
         SkillSearchEngine.Query query = new SkillSearchEngine.Query().category(category).perPage(100000);
         return search.search(query).getSkills();
     }
 
+    @BizMethod(name = "listInstalled", module = "z-skill", description = "", operation = BizMethod.Operation.QUERY)
     public List<SkillDto> listInstalled() {
         return registry.installedSkills();
     }
 
+    @BizMethod(name = "listCategories", module = "z-skill", description = "", operation = BizMethod.Operation.QUERY)
     public List<String> listCategories() {
         return search.listCategories();
     }
 
+    @BizMethod(name = "listSources", module = "z-skill", description = "", operation = BizMethod.Operation.QUERY)
     public List<SkillSourceDto> listSources() {
         return registry.getSources();
     }
 
+    @BizMethod(name = "listIssues", module = "z-skill", description = "", operation = BizMethod.Operation.QUERY)
     public List<SkillIssueDto> listIssues(String severity) {
         AggregateReportDto report = registry.getLastReport();
         if (report == null) return new ArrayList<SkillIssueDto>();
@@ -94,6 +101,7 @@ public class AdminQueryService {
         return out;
     }
 
+    @BizMethod(name = "health", module = "z-skill", description = "", operation = BizMethod.Operation.ACTION)
     public Map<String, Object> health() {
         int errored = 0;
         for (SkillSourceDto source : registry.getSources()) {
@@ -113,3 +121,6 @@ public class AdminQueryService {
         map.put(key, n == null ? 1 : n + 1);
     }
 }
+
+
+

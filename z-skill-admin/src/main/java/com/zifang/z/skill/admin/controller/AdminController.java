@@ -1,5 +1,8 @@
 package com.zifang.z.skill.admin.controller;
 
+import com.zifang.z.meta.api.annotation.BizApi;
+import com.zifang.z.meta.api.annotation.BizField;
+import com.zifang.z.meta.api.annotation.BizParam;
 import com.zifang.z.skill.admin.service.AdminQueryService;
 import com.zifang.z.skill.api.dto.SkillDto;
 import com.zifang.z.skill.api.dto.SkillIssueDto;
@@ -30,37 +33,47 @@ public class AdminController {
     }
 
     @GetMapping("/overview")
+    @BizApi(summary = "overview", description = "", tags = { "z-skill" })
     public Map<String, Object> overview() {
         return service.overview();
     }
 
     @GetMapping("/skills")
-    public List<SkillDto> skills(@RequestParam(required = false) String category) {
+    @BizApi(summary = "skills", description = "", tags = { "z-skill" })
+    public List<SkillDto> skills(@RequestParam(required = false) @BizParam(name = "category", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String category) {
         return service.listSkills(category);
     }
 
     @GetMapping("/installed")
+    @BizApi(summary = "installed", description = "", tags = { "z-skill" })
     public List<SkillDto> installed() {
         return service.listInstalled();
     }
 
     @GetMapping("/categories")
+    @BizApi(summary = "categories", description = "", tags = { "z-skill" })
     public List<String> categories() {
         return service.listCategories();
     }
 
     @GetMapping("/sources")
+    @BizApi(summary = "sources", description = "", tags = { "z-skill" })
     public List<SkillSourceDto> sources() {
         return service.listSources();
     }
 
     @GetMapping("/issues")
-    public List<SkillIssueDto> issues(@RequestParam(required = false) String severity) {
+    @BizApi(summary = "issues", description = "", tags = { "z-skill" })
+    public List<SkillIssueDto> issues(@RequestParam(required = false) @BizParam(name = "severity", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String severity) {
         return service.listIssues(severity);
     }
 
     @GetMapping("/health")
+    @BizApi(summary = "health", description = "", tags = { "z-skill" })
     public Map<String, Object> health() {
         return service.health();
     }
 }
+
+
+

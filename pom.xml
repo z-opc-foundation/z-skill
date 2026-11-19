@@ -78,6 +78,7 @@
     </modules>
 
     <properties>
+        <z-meta.version>1.0.2</z-meta.version>
         <!-- CI-friendly 版本: 子模块 <parent> 与本仓 DM 自钉都引用它; flatten(oss)负责展开 -->
         <!-- 0.2.5: **SB3 火车全量迁移**（2026-10-30）—— parent 抬到 z-boot-parent 1.2.0
              （Boot 3.3.13 地板）、javax.* → jakarta.*、
@@ -219,6 +220,11 @@
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
                 <version>9.3</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.yuku123</groupId>
+                <artifactId>z-meta-api</artifactId>
+                <version>${z-meta.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

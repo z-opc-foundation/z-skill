@@ -1,5 +1,8 @@
 package com.zifang.z.skill.core.controller;
 
+import com.zifang.z.meta.api.annotation.BizApi;
+import com.zifang.z.meta.api.annotation.BizField;
+import com.zifang.z.meta.api.annotation.BizParam;
 import com.zifang.z.skill.api.dto.SkillInstallDto;
 import com.zifang.z.skill.api.dto.SkillSearchResultDto;
 import com.zifang.z.skill.api.dto.SkillSourceDto;
@@ -46,57 +49,76 @@ public class MarketAliasController {
     }
 
     @GetMapping("/search")
-    public Map<String, Object> search(@RequestParam(required = false) String q,
-                                               @RequestParam(required = false) String category,
-                                               @RequestParam(required = false) String tag,
-                                               @RequestParam(required = false) String source,
-                                               @RequestParam(required = false) String format,
-                                               @RequestParam(required = false) String risk,
-                                               @RequestParam(required = false) Boolean installed,
-                                               @RequestParam(required = false, defaultValue = "relevance") String sort,
-                                               @RequestParam(required = false, defaultValue = "0") int page,
-                                               @RequestParam(required = false, defaultValue = "20") int perPage) {
+    @BizApi(summary = "search", description = "", tags = { "z-skill" })
+    public Map<String, Object> search(@RequestParam(required = false) @BizParam(name = "q", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String q,
+                                               @RequestParam(required = false)
+                                               @BizParam(name = "category", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String category,
+                                               @RequestParam(required = false)
+                                               @BizParam(name = "tag", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String tag,
+                                               @RequestParam(required = false)
+                                               @BizParam(name = "source", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String source,
+                                               @RequestParam(required = false)
+                                               @BizParam(name = "format", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String format,
+                                               @RequestParam(required = false)
+                                               @BizParam(name = "risk", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String risk,
+                                               @RequestParam(required = false)
+                                               @BizParam(name = "installed", type = BizField.FieldType.BOOLEAN, description = "", position = BizParam.Position.QUERY) Boolean installed,
+                                               @RequestParam(required = false, defaultValue = "relevance")
+                                               @BizParam(name = "sort", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String sort,
+                                               @RequestParam(required = false, defaultValue = "0")
+                                               @BizParam(name = "page", type = BizField.FieldType.INTEGER, description = "", position = BizParam.Position.QUERY) int page,
+                                               @RequestParam(required = false, defaultValue = "20")
+                                               @BizParam(name = "perPage", type = BizField.FieldType.INTEGER, description = "", position = BizParam.Position.QUERY) int perPage) {
         return ok(delegate.search(q, category, tag, source, format, risk, installed, sort, page, perPage));
     }
 
     @GetMapping("/categories")
+    @BizApi(summary = "categories", description = "", tags = { "z-skill" })
     public Map<String, Object> categories() {
         return ok(delegate.categories());
     }
 
     @GetMapping("/sources")
+    @BizApi(summary = "sources", description = "", tags = { "z-skill" })
     public Map<String, Object> sources() {
         return ok(delegate.sources());
     }
 
     @GetMapping("/stats")
+    @BizApi(summary = "stats", description = "", tags = { "z-skill" })
     public Map<String, Object> stats() {
         return ok(delegate.stats());
     }
 
     @GetMapping("/installed")
+    @BizApi(summary = "installed", description = "", tags = { "z-skill" })
     public Map<String, Object> installed() {
         return ok(delegate.installed());
     }
 
     @GetMapping("/detail")
-    public Map<String, Object> detail(@RequestParam("id") String id) {
+    @BizApi(summary = "detail", description = "", tags = { "z-skill" })
+    public Map<String, Object> detail(@RequestParam("id") @BizParam(name = "id", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String id) {
         return ok(delegate.detailById(id));
     }
 
     @GetMapping("/content")
-    public Map<String, Object> content(@RequestParam("id") String id,
-                                               @RequestParam(value = "file", required = false) String file) {
+    @BizApi(summary = "content", description = "", tags = { "z-skill" })
+    public Map<String, Object> content(@RequestParam("id") @BizParam(name = "id", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String id,
+                                               @RequestParam(value = "file", required = false)
+                                               @BizParam(name = "file", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String file) {
         return ok(delegate.contentById(id, file));
     }
 
     @PostMapping("/install")
-    public Map<String, Object> install(@RequestBody(required = false) Map<String, Object> body) {
+    @BizApi(summary = "install", description = "", tags = { "z-skill" })
+    public Map<String, Object> install(@RequestBody(required = false) @BizParam(name = "body", type = BizField.FieldType.JSON, description = "", position = BizParam.Position.BODY) Map<String, Object> body) {
         return ok(delegate.install(body));
     }
 
     @DeleteMapping("/uninstall/{id}")
-    public Map<String, Object> uninstall(@PathVariable("id") String id) {
+    @BizApi(summary = "uninstall", description = "", tags = { "z-skill" })
+    public Map<String, Object> uninstall(@PathVariable("id") @BizParam(name = "id", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.PATH) String id) {
         return ok(delegate.uninstall(id));
     }
 
@@ -107,11 +129,13 @@ public class MarketAliasController {
      * (或按 %2F 拒收), 放进 query 由 axios 编码才是稳的。前端走这条。
      */
     @DeleteMapping("/uninstall")
-    public Map<String, Object> uninstallById(@RequestParam("id") String id) {
+    @BizApi(summary = "查询串形态的卸载 — 与 #uninstall(String) 同义", description = "查询串形态的卸载 — 与 #uninstall(String) 同义. 聚合出来的 skill id 形如 source/slug, 带斜杠: 放进路径段会被 Tomcat 切段 (或按 %2F 拒收), 放进 query 由 axios 编码才是稳的。前端走这条。", tags = { "z-skill" })
+    public Map<String, Object> uninstallById(@RequestParam("id") @BizParam(name = "id", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String id) {
         return ok(delegate.uninstall(id));
     }
 
     @PostMapping("/refresh")
+    @BizApi(summary = "refresh", description = "", tags = { "z-skill" })
     public Map<String, Object> refresh() {
         return ok(delegate.refresh());
     }
@@ -123,19 +147,22 @@ public class MarketAliasController {
      * 前端曾经对着 {@code /skill/upload} 写过, 但那个端点在后端<b>从未存在过</b> ⇒ 这里用 publish 这条正名.
      */
     @PostMapping("/publish")
-    public Map<String, Object> publish(@RequestBody(required = false) Map<String, Object> body) {
+    @BizApi(summary = "「写出并发布」—— 自己写的 skill 落进发布目录", description = "「写出并发布」—— 自己写的 skill 落进发布目录. 发布目录是市场的一个来源 ⇒ 发布完 POST /skill/refresh 即可检索到. 前端曾经对着 /skill/upload 写过, 但那个端点在后端 从未存在过 ⇒ 这里用 publish 这条正名.", tags = { "z-skill" })
+    public Map<String, Object> publish(@RequestBody(required = false) @BizParam(name = "body", type = BizField.FieldType.JSON, description = "", position = BizParam.Position.BODY) Map<String, Object> body) {
         return ok(delegate.publish(body));
     }
 
     /** 「拿下来」—— 取一个 skill 的完整文件包（主文件 + 随包文件）. */
     @GetMapping("/download")
-    public Map<String, Object> download(@RequestParam("id") String id) {
+    @BizApi(summary = "「拿下来」—— 取一个 skill 的完整文件包（主文件 + 随包文件）", description = "「拿下来」—— 取一个 skill 的完整文件包（主文件 + 随包文件）.", tags = { "z-skill" })
+    public Map<String, Object> download(@RequestParam("id") @BizParam(name = "id", type = BizField.FieldType.STRING, description = "", position = BizParam.Position.QUERY) String id) {
         return ok(delegate.download(id));
     }
 
     /** 「装上能用」—— 把 skill 的文件复制到安装目录（agent 运行时的 skill 根）. */
     @PostMapping("/install-files")
-    public Map<String, Object> installFiles(@RequestBody(required = false) Map<String, Object> body) {
+    @BizApi(summary = "「装上能用」—— 把 skill 的文件复制到安装目录（agent 运行时的 skill 根）", description = "「装上能用」—— 把 skill 的文件复制到安装目录（agent 运行时的 skill 根）.", tags = { "z-skill" })
+    public Map<String, Object> installFiles(@RequestBody(required = false) @BizParam(name = "body", type = BizField.FieldType.JSON, description = "", position = BizParam.Position.BODY) Map<String, Object> body) {
         return ok(delegate.installFiles(body));
     }
 
@@ -155,3 +182,6 @@ public class MarketAliasController {
         return body;
     }
 }
+
+
+
