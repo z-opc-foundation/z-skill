@@ -1,8 +1,10 @@
-import { AppstoreOutlined, HomeOutlined, ReadOutlined } from '@ant-design/icons'
+import { AppstoreOutlined, HomeOutlined, ReadOutlined, TrophyOutlined } from '@ant-design/icons'
 import Catalog from './pages/Catalog'
+import Leaderboard from './pages/Leaderboard'
 
 
 export {default as Catalog} from './pages/Catalog'
+export {default as Leaderboard} from './pages/Leaderboard'
 import HomePage from './pages/HomePage'
 import ComponentDocPage from './pages/ComponentDoc.jsx'
 
@@ -11,12 +13,14 @@ export const appMeta = { title: 'z-skill 技能库', short: 'z-skill' }
 
 export const menuItems = [
     { key: '/z-skill/home', label: '首页', icon: <HomeOutlined /> },
+    { key: '/z-skill/leaderboard', label: '排行榜', icon: <TrophyOutlined /> },
     { key: '/z-skill/catalog', label: '技能目录', icon: <AppstoreOutlined /> },
     { key: '/z-skill/docs', label: '组件文档', icon: <ReadOutlined /> },
 ]
 
 export const routes = [
     { path: '/z-skill/home', Component: HomePage },
+    { path: '/z-skill/leaderboard', Component: Leaderboard },
     { path: '/z-skill/catalog', Component: Catalog },
     { path: '/z-skill/docs', Component: ComponentDocPage },
 ]

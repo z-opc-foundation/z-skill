@@ -12,6 +12,10 @@ function rowsOf(res) {
     return Array.isArray(data) ? data : []
 }
 
+function installsOf(r) {
+    return r.install_count ?? r.installs ?? r.installCount ?? 0
+}
+
 export default function SkillCatalog() {
     const [rows, setRows] = useState([])
     const [categories, setCategories] = useState([])
@@ -30,9 +34,14 @@ export default function SkillCatalog() {
                 kw ? skillApi.search(kw, category) : skillApi.list(category),
                 skillApi.categories().catch(() => null),
             ])
-            setRows(rowsOf(r))
-            const catArr = cats?.categories || cats
-            setCategories(Array.isArray(catArr) ? catArr : [])
+            // 搜索结果按相关性回显；无关键词（目录浏览）按安装量降序，向 skills.sh 排行口径看齐。
+            const list = rowsOf(r)
+            setRows(kw ? list : list.slice().sort((a, b) => installsOf(b) - installsOf(a)))
+            // /skill/categories 的 categories 是 {名字: 数量} 对象 map；数组形态是别的后端形状
+            const catMap = cats?.categories
+            setCategories(Array.isArray(catMap)
+                ? catMap
+                : Object.entries(catMap || {}).map(([code, count]) => ({code, name: code, count})))
             setError(null)
         } catch (e) {
             setError(e?.message || String(e))
@@ -50,6 +59,8 @@ export default function SkillCatalog() {
             render: (_, r) => r.description || r.desc || '—'},
         {title: '版本', key: 'version', width: 100,
             render: (_, r) => r.version || '—'},
+        {title: '安装量', key: 'installs', width: 90,
+            render: (_, r) => (r.install_count ?? r.installs ?? r.installCount ?? 0).toLocaleString()},
         {title: '已安装', key: 'installed', width: 90,
             render: (_, r) => r.installed ? <Tag color="green">已装</Tag> : <Tag>未装</Tag>},
     ]
